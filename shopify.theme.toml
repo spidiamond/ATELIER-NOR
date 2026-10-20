@@ -5,11 +5,14 @@
 # Pass storefront password at runtime with --store-password when needed.
 
 [environments.default]
-store = "r4a9gf-4s.myshopify.com"
+store = "isa3rz-xc.myshopify.com"
 
 [environments.main]
+store = "isa3rz-xc.myshopify.com"
+theme = "152300748844"
+
+[environments.previous]
 store = "r4a9gf-4s.myshopify.com"
-theme = "167251083367"
 
 [environments.old]
 store = "sbb7zc-9n.myshopify.com"
