@@ -1,0 +1,220 @@
+{% doc %}
+  Right-side Language & Region drawer. Submits Shopify's localization form.
+{% enddoc %}
+
+{% render 'atelier-drawer-styles' %}
+
+<theme-drawer
+  id="atelier-region-drawer"
+  data-overlay
+  no-persist
+>
+  <dialog
+    ref="panel"
+    class="theme-drawer__dialog atelier-panel"
+    aria-labelledby="atelier-region-drawer-heading"
+  >
+    {% form 'localization', id: 'AtelierLocalizationForm', class: 'atelier-region-form', return_to: request.path %}
+      <div class="theme-drawer__header atelier-panel__header">
+        <h2 class="theme-drawer__title" id="atelier-region-drawer-heading">
+          {{ 'content.language_and_region' | t }}
+        </h2>
+        <button
+          class="theme-drawer__close-button"
+          on:click="#atelier-region-drawer/close"
+          type="button"
+          aria-label="{{ 'actions.close' | t }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-close.svg' | inline_asset_content -}}
+          </span>
+        </button>
+      </div>
+
+      <div class="atelier-region-form__body">
+        <h3 class="atelier-region-form__heading">{{ 'content.change_region_language' | t }}</h3>
+        <p class="atelier-region-form__text">{{ 'content.region_language_help' | t }}</p>
+
+        {% if localization.available_countries.size <= 1 and localization.available_languages.size <= 1 %}
+          <p class="atelier-region-form__note">{{ 'content.localization_single_option' | t }}</p>
+        {% endif %}
+
+        <div class="atelier-tabs" data-atelier-tabs>
+          <div class="atelier-tabs__list" role="tablist" aria-label="{{ 'content.language_and_region' | t }}">
+            <button
+              type="button"
+              class="atelier-tabs__tab"
+              id="atelier-region-tab"
+              role="tab"
+              aria-selected="true"
+              aria-controls="atelier-region-panel"
+              data-atelier-tab="region"
+            >
+              {{ 'content.currency' | t }}
+            </button>
+            <button
+              type="button"
+              class="atelier-tabs__tab"
+              id="atelier-language-tab"
+              role="tab"
+              aria-selected="false"
+              aria-controls="atelier-language-panel"
+              tabindex="-1"
+              data-atelier-tab="language"
+            >
+              {{ 'content.language' | t }}
+            </button>
+          </div>
+
+          <div
+            class="atelier-tabs__panel"
+            id="atelier-region-panel"
+            role="tabpanel"
+            aria-labelledby="atelier-region-tab"
+            data-atelier-panel="region"
+          >
+            {% liquid
+              assign current_country = localization.country
+              assign currency_label = current_country.name | append: ' (' | append: current_country.currency.iso_code | append: ' ' | append: current_country.currency.symbol | append: ')'
+              assign popular_codes = 'AU,AT,BE,CA,CZ,DK,FR,DE,IN,IT,JP,NL,NZ,NO,PL,PT,ES,SE,CH,GB,US' | split: ','
+            %}
+            <div class="atelier-picker" data-atelier-picker>
+              <label class="visually-hidden" id="atelier-country-label">{{ 'content.currency' | t }}</label>
+              <button
+                type="button"
+                class="atelier-picker__trigger"
+                id="atelier-country-code"
+                data-atelier-picker-trigger
+                aria-labelledby="atelier-country-label"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="atelier-country-list"
+              >
+                <span data-atelier-picker-label>{{ currency_label }}</span>
+                <span class="atelier-picker__chevron" aria-hidden="true"></span>
+              </button>
+              <input type="hidden" name="country_code" value="{{ current_country.iso_code }}">
+              <div class="atelier-picker__panel" id="atelier-country-list" hidden>
+                <ul class="atelier-picker__list" role="listbox" aria-labelledby="atelier-country-label">
+                  {% for code in popular_codes %}
+                    {% for country in localization.available_countries %}
+                      {% if country.iso_code == code %}
+                        {% assign option_meta = '(' | append: country.currency.iso_code | append: ' ' | append: country.currency.symbol | append: ')' %}
+                        {% assign option_label = country.name | append: ' ' | append: option_meta %}
+                        <li>
+                          <button
+                            type="button"
+                            class="atelier-picker__option"
+                            role="option"
+                            data-atelier-option
+                            data-value="{{ country.iso_code }}"
+                            data-label="{{ option_label | escape }}"
+                            {% if country.iso_code == current_country.iso_code %}
+                              aria-selected="true"
+                            {% else %}
+                              aria-selected="false"
+                            {% endif %}
+                          >
+                            <span class="atelier-picker__title">{{ country.name }}</span>
+                            <span class="atelier-picker__meta">{{ option_meta }}</span>
+                          </button>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                  {% for country in localization.available_countries %}
+                    {% unless popular_codes contains country.iso_code %}
+                      {% assign option_meta = '(' | append: country.currency.iso_code | append: ' ' | append: country.currency.symbol | append: ')' %}
+                      {% assign option_label = country.name | append: ' ' | append: option_meta %}
+                      <li>
+                        <button
+                          type="button"
+                          class="atelier-picker__option"
+                          role="option"
+                          data-atelier-option
+                          data-value="{{ country.iso_code }}"
+                          data-label="{{ option_label | escape }}"
+                          {% if country.iso_code == current_country.iso_code %}
+                            aria-selected="true"
+                          {% else %}
+                            aria-selected="false"
+                          {% endif %}
+                        >
+                          <span class="atelier-picker__title">{{ country.name }}</span>
+                          <span class="atelier-picker__meta">{{ option_meta }}</span>
+                        </button>
+                      </li>
+                    {% endunless %}
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="atelier-tabs__panel"
+            id="atelier-language-panel"
+            role="tabpanel"
+            aria-labelledby="atelier-language-tab"
+            data-atelier-panel="language"
+            hidden
+          >
+            {% assign current_language = localization.language %}
+            <div class="atelier-picker atelier-picker--language" data-atelier-picker>
+              <label class="visually-hidden" id="atelier-language-label">{{ 'content.language' | t }}</label>
+              <button
+                type="button"
+                class="atelier-picker__trigger"
+                id="atelier-locale-code"
+                data-atelier-picker-trigger
+                aria-labelledby="atelier-language-label"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="atelier-language-list"
+              >
+                <span data-atelier-picker-label>{{ current_language.endonym_name | capitalize }}</span>
+                <span class="atelier-picker__chevron" aria-hidden="true"></span>
+              </button>
+              <input type="hidden" name="locale_code" value="{{ current_language.iso_code }}">
+              <div class="atelier-picker__panel" id="atelier-language-list" hidden>
+                <ul class="atelier-picker__list" role="listbox" aria-labelledby="atelier-language-label">
+                  {% for language in localization.available_languages %}
+                    {% assign language_label = language.endonym_name | capitalize %}
+                    <li>
+                      <button
+                        type="button"
+                        class="atelier-picker__option"
+                        role="option"
+                        data-atelier-option
+                        data-value="{{ language.iso_code }}"
+                        data-label="{{ language_label | escape }}"
+                        {% if language.iso_code == current_language.iso_code %}
+                          aria-selected="true"
+                        {% else %}
+                          aria-selected="false"
+                        {% endif %}
+                      >
+                        <span class="atelier-picker__check" aria-hidden="true">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M2.5 7.2 5.4 10.1 11.5 3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </span>
+                        <span class="atelier-picker__title">{{ language_label }}</span>
+                      </button>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="atelier-region-form__footer">
+        <button class="atelier-solid-button" type="submit">
+          {{ 'content.save_changes' | t }}
+        </button>
+      </div>
+    {% endform %}
+  </dialog>
+</theme-drawer>

@@ -19,12 +19,12 @@
       aria-label="{{ 'content.search_input_label' | t }}"
       aria-haspopup="dialog"
     >
-      <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">
-        {{ 'content.search' | t }}
-      </span>
-
-      <span class="svg-wrapper {% if display_style != 'icon' %}desktop:hidden{% endif %}">
+      <span class="svg-wrapper atelier-keep-icon {% if display_style != 'icon' %}desktop:hidden{% endif %}">
         {{ 'icon-search.svg' | inline_asset_content }}
+      </span>
+      <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">
+        {% assign search_label = 'content.search' | t %}
+        {% render 'atelier-flip-label', text: search_label %}
       </span>
     </button>
   </search-button>

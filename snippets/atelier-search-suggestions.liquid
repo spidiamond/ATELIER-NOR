@@ -1,0 +1,80 @@
+{% doc %}
+  Empty-search suggestions drawn from published collections, with catalog search as the fallback.
+
+  Loop variables stay inside the loop, so each group is found with its own pass and a break.
+{% enddoc %}
+
+{% capture suggestion_links %}
+  {% for product in collections.all.products limit: 50 %}
+    {% if product.type == 'Dress' %}
+      {% render 'atelier-search-link', label: 'Dresses', query: 'Dress', handle: 'dresses' %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% for product in collections.all.products limit: 50 %}
+    {% if product.type == 'Tops' %}
+      {% render 'atelier-search-link', label: 'Tops', query: 'Tops', handle: 'tops' %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% for product in collections.all.products limit: 50 %}
+    {% if product.type == 'Bottoms' %}
+      {% render 'atelier-search-link', label: 'Bottoms', query: 'Bottoms', handle: 'bottoms' %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% for product in collections.all.products limit: 50 %}
+    {% assign type_name = product.type | downcase %}
+    {% if type_name contains 'coat' or type_name contains 'jacket' or type_name contains 'blazer' %}
+      {% render 'atelier-search-link', label: 'Outerwear', query: type_name, handle: 'outerwear' %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% for product in collections.all.products limit: 50 %}
+    {% assign type_name = product.type | downcase %}
+    {% if type_name contains 'knit' or type_name contains 'cardigan' %}
+      {% render 'atelier-search-link', label: 'Knitwear', query: type_name, handle: 'knitwear' %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endcapture %}
+
+{% capture collection_cards %}
+  {% for product in collections.all.products limit: 50 %}
+    {% if product.type == 'Dress' %}
+      {% render 'atelier-collection-card', label: 'Dresses', query: 'Dress', handle: 'dresses', catalog_item: product %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% for product in collections.all.products limit: 50 %}
+    {% if product.type == 'Tops' %}
+      {% render 'atelier-collection-card', label: 'Tops', query: 'Tops', handle: 'tops', catalog_item: product %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% for product in collections.all.products limit: 50 %}
+    {% assign type_name = product.type | downcase %}
+    {% if type_name contains 'coat' or type_name contains 'jacket' or type_name contains 'blazer' %}
+      {% render 'atelier-collection-card', label: 'Outerwear', query: type_name, handle: 'outerwear', catalog_item: product %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endcapture %}
+
+<div class="atelier-search-suggest">
+  {% assign suggestion_links = suggestion_links | strip %}
+  {% if suggestion_links != blank %}
+    <h3 class="atelier-search-suggest__heading">{{ 'content.popular_searches' | t }}</h3>
+    <ul class="atelier-search-suggest__list list-unstyled" role="list">
+      {{ suggestion_links }}
+    </ul>
+  {% endif %}
+
+  {% assign collection_cards = collection_cards | strip %}
+  {% if collection_cards != blank %}
+    <h3 class="atelier-search-suggest__heading">{{ 'content.popular_collections' | t }}</h3>
+    <ul class="atelier-search-suggest__cards list-unstyled" role="list">
+      {{ collection_cards }}
+    </ul>
+  {% endif %}
+</div>

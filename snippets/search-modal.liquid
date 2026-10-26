@@ -8,6 +8,7 @@
 {% render 'pills-styles' %}
 {% render 'dialog-styles' %}
 {% render 'predictive-search-styles' %}
+{% render 'atelier-drawer-styles' %}
 
 <script
   src="{{ 'dialog.js' | asset_url }}"
@@ -29,7 +30,7 @@
     ref="dialog"
     on:click="/closeDialogOnClickOutside"
     on:keydown="/closeDialogOnEscapePress"
-    class="search-modal__content dialog-modal"
+    class="search-modal__content dialog-modal atelier-panel"
     scroll-lock
     aria-labelledby="search-modal-heading"
   >
@@ -79,6 +80,7 @@
               autocomplete="off"
               placeholder="{{ 'content.search_input_placeholder' | t }}"
               ref="searchInput"
+              autofocus
               on:input="/search"
               on:keydown="/onSearchKeyDown"
             >
@@ -148,17 +150,26 @@
   }
 
   .search-modal__content {
-    /* Approx set the top so when the content is at max height, the modal is centered */
-    --modal-top-margin: calc(50dvh - var(--modal-max-height) / 2 - 2rem);
-    --modal-width: 66dvw;
+    --theme-drawer-width: min(28vw, 30rem);
 
+    position: fixed;
+    inset: 0 0 0 auto;
+    inset-inline-start: auto;
+    width: var(--theme-drawer-width);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
     padding: 0;
-    border: var(--style-border-popover);
+    border: 0;
+    border-inline-start: 1px solid #e6e6e6;
+    border-radius: 0;
+    background: #fff;
+    color: #171717;
+    overflow: hidden;
 
-    @media screen and (min-width: 750px) {
-      width: var(--modal-width);
-      margin-block-start: var(--modal-top-margin);
-      overflow: hidden;
+    @media screen and (max-width: 749px) {
+      width: min(92vw, 100%);
     }
   }
 
@@ -170,18 +181,59 @@
   }
 
   .dialog-modal[open].search-modal__content {
-    transform-origin: bottom center;
-    animation: search-element-slide-in-bottom 300ms var(--ease-out-quad) forwards;
-    border-radius: var(--search-border-radius);
-    box-shadow: var(--shadow-popover);
-
-    @media screen and (max-width: 749px) {
-      border-radius: 0;
-    }
+    animation: drawer-slide-in var(--animation-speed) var(--animation-timing-fade-in);
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .dialog-modal.search-modal__content.dialog-closing {
-    animation: search-element-slide-out-bottom 200ms var(--ease-out-quad) forwards;
+    animation: drawer-slide-out var(--animation-speed) var(--animation-timing-fade-out) forwards;
+  }
+
+  .search-modal__content .predictive-search,
+  .search-modal__content .predictive-search-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: #fff;
+  }
+
+  .search-modal__content .predictive-search-form__header,
+  .search-modal__content .predictive-search-form__header-inner {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .search-modal__content .predictive-search-form__header {
+    border-bottom: 1px solid #e6e6e6;
+    padding-inline: 0.35rem;
+  }
+
+  .search-modal__content .predictive-search-form__content-wrapper {
+    position: relative;
+    top: auto;
+    inset-inline-start: auto;
+    z-index: auto;
+    flex: 1;
+    width: 100%;
+    max-height: none;
+    min-height: 0;
+    overflow: auto;
+    border-radius: 0;
+  }
+
+  .search-modal__content .predictive-search-form__content {
+    max-height: none;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .search-modal__content .predictive-search-form__footer {
+    display: none;
   }
 
   .search-modal__content[open] {

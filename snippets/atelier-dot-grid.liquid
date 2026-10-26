@@ -1,0 +1,29 @@
+{%- doc -%}
+  Small 2 by 3 dot mark used beside the logo and region control.
+
+  @param {string} [identifier] - Unique suffix so repeated marks do not share an id
+  @param {string} [label] - Accessible name when the mark conveys meaning on its own
+
+  @example
+  {% render 'atelier-dot-grid', identifier: 'logo' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign identifier = identifier | default: 'default'
+  assign grid_id = 'atelier-dots-' | append: identifier | append: '-' | append: section.id
+-%}
+
+<span
+  class="atelier-dot-grid"
+  id="{{ grid_id }}"
+  {% if label != blank %}
+    role="img"
+    aria-label="{{ label | escape }}"
+  {% else %}
+    aria-hidden="true"
+  {% endif %}
+>
+  {%- for i in (1..6) -%}
+    <span class="atelier-dot-grid__dot" style="--dot-index: {{ i }}"></span>
+  {%- endfor -%}
+</span>

@@ -18,13 +18,18 @@
   fetchpriority="low"
 ></script>
 
+{% liquid
+  assign cart_title_label = 'content.cart_title' | t
+  assign account_title_label = 'content.account_title' | t
+%}
+
 {% capture cart_icon %}
   <cart-icon
     class="header-actions__cart-icon{% if display_style == 'text' %} header-actions__cart-icon--text{% endif %}{% unless cart == empty %} header-actions__cart-icon--has-cart{% endunless %}"
     data-testid="cart-icon"
   >
     <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">
-      {{ 'content.cart_title' | t }}
+      {% render 'atelier-flip-label', text: cart_title_label %}
     </span>
 
     <span
@@ -96,17 +101,17 @@
         {% else %}
           <span
             slot="signed-out-avatar"
-            class="account-button__text header-actions__text-style {% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}"
+            class="atelier-account-trigger header-actions__text-style"
           >
-            {{ 'content.account_title' | t }}
-          </span>
-
-          <span
-            slot="signed-out-avatar"
-            class="{% if display_style != 'icon' %}desktop:hidden{% endif %}"
-            aria-hidden="true"
-          >
-            {{ account_icon }}
+            <span
+              class="atelier-keep-icon {% if display_style != 'icon' %}desktop:hidden{% endif %}"
+              aria-hidden="true"
+            >
+              {{ account_icon }}
+            </span>
+            <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">
+              {% render 'atelier-flip-label', text: account_title_label %}
+            </span>
           </span>
         {% endif %}
       </shopify-account>

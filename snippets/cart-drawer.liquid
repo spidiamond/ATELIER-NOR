@@ -2,6 +2,7 @@
   Renders reusable cart drawer markup for both initial page loads and Section Rendering API responses.
 
   @param {boolean} [render_wrapper] - When true, wraps the drawer in the section wrapper that the Section Rendering API adds automatically.
+  @param {object} [featured_product] - Product shown beneath the empty-cart message. Falls back to the first catalog product.
 {% enddoc %}
 
 {%- liquid
@@ -24,29 +25,29 @@
 
   {% capture empty_cart_drawer_content %}
     <div
-      class="cart-drawer__content"
+      class="cart-drawer__content atelier-cart-empty"
       aria-label="{{ 'accessibility.cart' | t }}"
     >
-      <h2
-        class="theme-drawer__title h4"
-        id="cart-drawer-heading"
-      >
-        {{ 'content.your_cart_is_empty' | t }}
-      </h2>
-
-      <div class="cart-drawer__items">
-        {% render 'cart-products', force_empty: true, context: 'drawer' %}
+      <div class="atelier-cart-empty__message">
+        <h3 class="atelier-cart-empty__title">{{ 'content.shopping_cart_empty' | t }}</h3>
+        <p class="atelier-cart-empty__text">{{ 'content.empty_cart_message' | t }}</p>
+        <a class="atelier-solid-button" href="{{ routes.all_products_collection_url }}">
+          {{ 'content.explore_collections' | t }}
+        </a>
       </div>
+      {% render 'atelier-featured-card', featured_product: featured_product %}
     </div>
   {% endcapture %}
 
   <theme-drawer
     id="cart-drawer"
+    data-overlay
+    no-persist
     data-skip-node-update
   >
     <dialog
       ref="panel"
-      class="theme-drawer__dialog color-custom-drawer"
+      class="theme-drawer__dialog atelier-panel color-custom-drawer"
       aria-labelledby="cart-drawer-heading"
       cart-summary-sticky="true"
     >
@@ -63,44 +64,21 @@
           class="cart-drawer__inner{% if cart.empty? %} cart-drawer--empty{% endif %}"
           data-hydration-key="cart-drawer-inner"
         >
-          {%- if cart.empty? -%}
-            <div class="theme-drawer__header">
-              <button
-                on:click="#cart-drawer/close"
-                class="theme-drawer__close-button cart-drawer__close-button--empty"
-                type="button"
-                aria-label="{{ 'actions.close' | t }}"
-              >
-                <span class="svg-wrapper">
-                  {{- 'icon-close.svg' | inline_asset_content -}}
-                </span>
-              </button>
-            </div>
-          {%- else -%}
-            {% capture cart_badge_html %}
-              <span
-                class="theme-drawer__badge{% if cart.item_count == 0 %} visually-hidden{% endif %}"
-                aria-hidden="true"
-                {% if cart.item_count <= 99 %}
-                  data-maintain-ratio
-                {% endif %}
-              >
-                {{- cart.item_count -}}
-              </span>
-              {% if cart.item_count > 0 %}
-                <span class="visually-hidden">
-                  {{ 'accessibility.cart_count' | t }}: {{ cart.item_count }}
-                </span>
-              {% endif %}
-            {% endcapture %}
-            {% assign cart_drawer_title = 'content.cart_title' | t %}
-            {% render 'theme-drawer-header',
-              title: cart_drawer_title,
-              drawer_id: 'cart-drawer',
-              heading_id: 'cart-drawer-heading',
-              title_append: cart_badge_html
-            %}
-          {%- endif -%}
+          {% capture cart_badge_html %}
+            <span class="theme-drawer__badge" aria-hidden="true">
+              {{- cart.item_count -}}
+            </span>
+            <span class="visually-hidden">
+              {{ 'accessibility.cart_count' | t }}: {{ cart.item_count }}
+            </span>
+          {% endcapture %}
+          {% assign cart_drawer_title = 'content.your_cart_label' | t %}
+          {% render 'theme-drawer-header',
+            title: cart_drawer_title,
+            drawer_id: 'cart-drawer',
+            heading_id: 'cart-drawer-heading',
+            title_append: cart_badge_html
+          %}
 
           {% capture cart_items_children %}
             {%- if cart.empty? -%}
@@ -134,6 +112,8 @@
     </div>
   {% endif %}
 {%- endif -%}
+
+{% render 'atelier-drawer-styles' %}
 
 {% stylesheet %}
   cart-drawer-component {
@@ -259,6 +239,14 @@
 
   cart-drawer-component:not(:has(.cart-form)) .cart-drawer__items {
     padding-inline: 0;
+  }
+
+  cart-drawer-component:not(:has(.cart-form)) .cart-drawer__content.atelier-cart-empty {
+    align-items: stretch;
+    justify-content: flex-start;
+    text-align: start;
+    padding: 1.5rem 1.35rem 1.35rem;
+    overflow-y: auto;
   }
 
   @media screen and (prefers-reduced-motion: no-preference) {

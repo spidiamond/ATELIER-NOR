@@ -461,7 +461,7 @@
 
 <div
   id="Hero-{{ section.id }}"
-  class="hero{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}{% if section.blocks.size == 0 and section.settings.section_height == 'auto' %} hero--no-blocks-auto-height{% endif %}{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}"
+  class="hero{% if section.settings.section_height == 'full-screen' %} hero--full-viewport{% endif %}{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}{% if section.blocks.size == 0 and section.settings.section_height == 'auto' %} hero--no-blocks-auto-height{% endif %}{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}"
   style="
     --hero-border-style: {{ section.settings.border }};
     --hero-border-width: {{ section.settings.border_width }}px;
@@ -470,6 +470,7 @@
     {% if section.settings.section_height == 'custom' %}
       --hero-min-height: {{ section.settings.section_height_custom }}svh;
     {% elsif section.settings.section_height == "full-screen" %}
+       --hero-min-height: 100vh;
        --hero-min-height: 100svh;
     {% else %}
       --hero-min-height: var(--section-height-{{ section.settings.section_height }});
@@ -558,6 +559,26 @@
      With body as the subject, every [open] or [aria-expanded] change in the header restyles the whole page. */
   #header-group:has(> .header-section > #header-component) ~ * .hero-wrapper:first-child {
     --hero-height-offset: var(--header-group-height, 0);
+  }
+
+  /* A full-viewport hero is pulled under the header group by the transparent-header
+     negative margin. Keep its own height at 100svh so the navbar overlays the image
+     and the next section starts at the bottom of the first viewport. */
+  #header-group:has(> .header-section > #header-component[transparent])
+    ~ *
+    .hero-wrapper:first-child:has(.hero--full-viewport) {
+    --hero-height-offset: 0px;
+  }
+
+  .hero--full-viewport .hero__content-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-height: 100%;
+    padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+    padding-block: 0 clamp(2.5rem, 7vh, 4.5rem);
+    text-align: start;
   }
 
   .hero {

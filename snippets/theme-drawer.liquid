@@ -87,7 +87,8 @@
 
   // ── Squeeze coordination ──
   // Listens to all drawers. Only squeezes on wide viewports.
-  document.addEventListener('theme-drawer:open', () => {
+  document.addEventListener('theme-drawer:open', (event) => {
+    if (event.target instanceof Element && event.target.hasAttribute('data-overlay')) return;
     if (squeezeQuery.matches) {
       pageWrapper?.classList.add('page-wrapper--drawer-open');
     }

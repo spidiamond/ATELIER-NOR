@@ -1,0 +1,51 @@
+{% doc %}
+  Compact collection card. Uses the collection image when that collection is published.
+
+  @param {string} label - Card title
+  @param {string} query - Search query used when no collection is published
+  @param {string} handle - Collection handle to prefer
+  @param {object} catalog_item - Catalog product used for the image and supporting line
+{% enddoc %}
+
+{% liquid
+  assign matched_collection = collections[handle]
+  assign card_url = blank
+  assign card_image = blank
+  assign card_support = blank
+
+  if matched_collection != blank and matched_collection.products_count > 0
+    assign card_url = matched_collection.url
+    assign card_image = matched_collection.image | default: matched_collection.products.first.featured_image
+    assign card_support = matched_collection.description | strip_html | truncate: 42
+  elsif catalog_item != blank and catalog_item.featured_image != blank
+    assign card_image = catalog_item.featured_image
+    assign card_support = catalog_item.title
+  endif
+%}
+
+{% if card_url == blank and query != blank and card_image != blank %}
+  {% capture card_url %}{{ routes.search_url }}?type=product&q={{ query | url_encode }}{% endcapture %}
+{% endif %}
+
+{% if card_url != blank and card_image != blank %}
+  <li>
+    <a class="atelier-collection-card" href="{{ card_url }}">
+      {{
+        card_image
+        | image_url: width: 240
+        | image_tag:
+          class: 'atelier-collection-card__image',
+          loading: 'lazy',
+          widths: '96, 160, 240',
+          sizes: '72px',
+          alt: ''
+      }}
+      <span class="atelier-collection-card__copy">
+        <span class="atelier-collection-card__title">{{ label | escape }}</span>
+        {% if card_support != blank %}
+          <span class="atelier-collection-card__support">{{ card_support | escape }}</span>
+        {% endif %}
+      </span>
+    </a>
+  </li>
+{% endif %}

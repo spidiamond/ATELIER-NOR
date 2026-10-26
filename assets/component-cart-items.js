@@ -270,7 +270,8 @@ export class CartItemsComponent extends createViewEventElement(Component) {
       const clone = document.importNode(template.content, true);
 
       startViewTransition(() => {
-        document.getElementById('cart-drawer-heading')?.remove();
+        const badge = document.querySelector('#cart-drawer .theme-drawer__badge');
+        if (badge) badge.textContent = '0';
         this.replaceChildren(clone);
       }, [this.isDrawer ? 'empty-cart-drawer' : 'empty-cart-page']);
 

@@ -1,0 +1,34 @@
+{% doc %}
+  Large catalog image card with a title over a dark gradient.
+
+  @param {object} [featured_product] - Merchant-selected product. Uses the first catalog product when blank.
+{% enddoc %}
+
+{% liquid
+  assign card_product = featured_product
+  if card_product == blank
+    assign card_product = collections.all.products.first
+  endif
+%}
+
+{% if card_product != blank and card_product.featured_image != blank %}
+  <a class="atelier-feature-card" href="{{ card_product.url }}">
+    {{
+      card_product.featured_image
+      | image_url: width: 960
+      | image_tag:
+        class: 'atelier-feature-card__image',
+        loading: 'lazy',
+        widths: '360, 540, 720, 960',
+        sizes: '(min-width: 750px) 28vw, 92vw',
+        alt: ''
+    }}
+    <span class="atelier-feature-card__shade" aria-hidden="true"></span>
+    <span class="atelier-feature-card__meta">
+      {% if card_product.type != blank %}
+        <span class="atelier-feature-card__kicker">{{ card_product.type | escape }}</span>
+      {% endif %}
+      <span class="atelier-feature-card__title">{{ card_product.title | escape }}</span>
+    </span>
+  </a>
+{% endif %}

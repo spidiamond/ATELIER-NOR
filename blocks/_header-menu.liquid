@@ -93,6 +93,7 @@
     %}
 
     {% capture children %}
+      {% assign more_label = 'actions.more' | t %}
       {% for link in block_settings.menu.links %}
         <li
           class="menu-list__list-item"
@@ -112,7 +113,7 @@
             {% endif %}
             ref="menuitem"
           >
-            <span class="menu-list__link-title">{{- link.title -}}</span>
+            <span class="menu-list__link-title">{% render 'atelier-flip-label', text: link.title %}</span>
           </a>
           {%- if link.links != blank -%}
             <button
@@ -185,7 +186,7 @@
           data-testid="header-menu-more-button"
           data-skip-node-update
         >
-          <span class="menu-list__link-title">{{ 'actions.more' | t }}</span>
+          <span class="menu-list__link-title">{% render 'atelier-flip-label', text: more_label %}</span>
         </button>
       </li>
     {% endcapture %}

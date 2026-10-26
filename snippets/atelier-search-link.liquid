@@ -1,0 +1,25 @@
+{% doc %}
+  One search suggestion. Uses a published collection when it has products.
+
+  @param {string} label - Visible label
+  @param {string} query - Search query used when no collection is published
+  @param {string} handle - Collection handle to prefer
+{% enddoc %}
+
+{% liquid
+  assign matched_collection = collections[handle]
+  assign suggestion_url = blank
+  if matched_collection != blank and matched_collection.products_count > 0
+    assign suggestion_url = matched_collection.url
+  endif
+%}
+
+{% if suggestion_url == blank and query != blank %}
+  {% capture suggestion_url %}{{ routes.search_url }}?type=product&q={{ query | url_encode }}{% endcapture %}
+{% endif %}
+
+{% if suggestion_url != blank %}
+  <li>
+    <a class="atelier-search-suggest__link" href="{{ suggestion_url }}">{{ label | escape }}</a>
+  </li>
+{% endif %}

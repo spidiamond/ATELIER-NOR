@@ -54,6 +54,12 @@ export class DialogComponent extends Component {
 
     // Prevent layout thrashing by separating DOM reads from DOM writes
     requestAnimationFrame(() => {
+      if (dialog.classList.contains('atelier-panel')) {
+        document.querySelectorAll('theme-drawer[data-overlay]').forEach((drawer) => {
+          drawer.releaseModal?.();
+        });
+      }
+
       lockScroll(dialog);
 
       dialog.showModal();
@@ -62,6 +68,19 @@ export class DialogComponent extends Component {
       this.addEventListener('click', this.#handleClick);
       this.addEventListener('keydown', this.#handleKeyDown);
     });
+  }
+
+  /**
+   * Closes this dialog immediately so another modal can open.
+   */
+  releaseDialog() {
+    const { dialog } = this.refs;
+    if (!dialog?.open) return;
+
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+    unlockScroll(dialog);
+    dialog.close();
   }
 
   /**

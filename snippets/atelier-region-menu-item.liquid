@@ -1,0 +1,15 @@
+{% doc %}
+  Mobile menu entry that opens the region drawer when localization is enabled.
+{% enddoc %}
+
+{% if section.settings.show_country or section.settings.show_language %}
+  <li class="menu-drawer__list-item">
+    <button
+      type="button"
+      class="menu-drawer__menu-item menu-drawer__menu-item--mainlist button-unstyled"
+      on:click="#atelier-region-drawer/open"
+    >
+      <span class="menu-drawer__menu-item-text wrap-text">{{ 'content.region' | t }}</span>
+    </button>
+  </li>
+{% endif %}

@@ -1,0 +1,15 @@
+{%- doc -%}
+  Clipped slide-up label. The second line is hidden from assistive technology.
+
+  @param {string} text - Visible label
+
+  @example
+  {% render 'atelier-flip-label', text: link.title %}
+{%- enddoc -%}
+
+<span class="atelier-flip">
+  <span class="atelier-flip__track">
+    <span class="atelier-flip__line">{{ text }}</span>
+    <span class="atelier-flip__line" aria-hidden="true">{{ text }}</span>
+  </span>
+</span>
