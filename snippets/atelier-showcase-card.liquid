@@ -1,0 +1,203 @@
+{%- doc -%}
+  Editorial showcase product card for the curated showcase section.
+
+  @param {object} product - Shopify product
+  @param {object} section - Parent section
+  @param {string} feature_label - Feature strip label
+  @param {string} [badge_label] - Optional badge override
+  @param {boolean} [show_swatches] - Show color swatches
+  @param {boolean} [show_badges] - Show product badges
+  @param {string} [quick_action] - quick_view or view_product
+{%- enddoc -%}
+
+{%- liquid
+  assign variant = product.selected_or_first_available_variant
+  assign featured_image = variant.featured_image | default: product.featured_media.preview_image
+  assign secondary_image = product.media[1].preview_image
+  assign on_sale = false
+  if variant.compare_at_price > variant.price
+    assign on_sale = true
+  endif
+
+  assign badge_text = badge_label | strip
+  if badge_text == blank and show_badges
+    if on_sale
+      assign badge_text = 'SALE'
+    elsif product.tags contains 'new' or product.tags contains 'New'
+      assign badge_text = 'NEW'
+    endif
+  endif
+
+  assign color_option = nil
+  for option in product.options_with_values
+    assign option_down = option.name | downcase
+    if option_down contains 'color' or option_down contains 'colour'
+      assign color_option = option
+      break
+    endif
+  endfor
+
+  assign product_card_id = 'atelier-showcase-' | append: section.id | append: '-' | append: product.id
+-%}
+
+<product-card
+  class="atelier-showcase-card"
+  data-product-id="{{ product.id }}"
+  id="product-card-{{ product_card_id }}"
+>
+  <a
+    id="{{ product_card_id | md5 }}"
+    href="{{ product.url }}"
+    class="product-card__link visually-hidden"
+    ref="productCardLink"
+    tabindex="-1"
+  >
+    {{- product.title | escape -}}
+  </a>
+
+  <article class="atelier-showcase-card__surface">
+    <div class="atelier-showcase-card__media">
+      <a href="{{ product.url }}" class="atelier-showcase-card__media-link" tabindex="-1" aria-hidden="true">
+        {%- if featured_image != blank -%}
+          {{
+            featured_image
+            | image_url: width: 900
+            | image_tag:
+              widths: '300, 450, 600, 750, 900',
+              sizes: '(min-width: 990px) 22vw, (min-width: 750px) 30vw, 78vw',
+              loading: 'lazy',
+              class: 'atelier-showcase-card__image atelier-showcase-card__image--primary',
+              alt: product.featured_media.alt | default: product.title
+          }}
+          {%- if secondary_image != blank -%}
+            {{
+              secondary_image
+              | image_url: width: 900
+              | image_tag:
+                widths: '300, 450, 600, 750, 900',
+                sizes: '(min-width: 990px) 22vw, (min-width: 750px) 30vw, 78vw',
+                loading: 'lazy',
+                class: 'atelier-showcase-card__image atelier-showcase-card__image--secondary',
+                alt: ''
+            }}
+          {%- endif -%}
+        {%- else -%}
+          <div class="atelier-showcase-card__image-placeholder"></div>
+        {%- endif -%}
+      </a>
+
+      {%- if badge_text != blank -%}
+        <div class="atelier-showcase-card__badges">
+          <span class="atelier-showcase-card__badge{% if badge_text == 'SALE' %} atelier-showcase-card__badge--sale{% elsif badge_text == 'NEW' %} atelier-showcase-card__badge--new{% else %} atelier-showcase-card__badge--pick{% endif %}">
+            {{ badge_text }}
+          </span>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="atelier-showcase-card__feature">
+      <p class="atelier-showcase-card__feature-text">{{ feature_label | escape }}</p>
+    </div>
+
+    <div class="atelier-showcase-card__meta">
+      <div class="atelier-showcase-card__copy">
+        <h3 class="atelier-showcase-card__title">
+          <a href="{{ product.url }}">{{ product.title | escape }}</a>
+        </h3>
+        <div class="atelier-showcase-card__price">
+          {% render 'price', product_resource: product, show_sale_price_first: true %}
+        </div>
+
+        {%- if show_swatches and color_option != nil and color_option.values.size > 0 -%}
+          <div class="atelier-showcase-card__swatches" role="list" aria-label="{{ 'content.showcase_color_options' | t }}">
+            {%- for value in color_option.values limit: 6 -%}
+              {%- liquid
+                assign swatch_style = ''
+                if value.swatch.color != blank
+                  assign swatch_style = 'background-color: ' | append: value.swatch.color | append: ';'
+                elsif value.swatch.image != blank
+                  assign swatch_image = value.swatch.image | image_url: width: 40
+                  assign swatch_style = 'background-image: url(' | append: swatch_image | append: ');'
+                endif
+
+                assign swatch_variant = nil
+                for product_variant in product.variants
+                  case color_option.position
+                    when 1
+                      if product_variant.option1 == value.name
+                        assign swatch_variant = product_variant
+                        break
+                      endif
+                    when 2
+                      if product_variant.option2 == value.name
+                        assign swatch_variant = product_variant
+                        break
+                      endif
+                    when 3
+                      if product_variant.option3 == value.name
+                        assign swatch_variant = product_variant
+                        break
+                      endif
+                  endcase
+                endfor
+
+                assign swatch_image_url = ''
+                if swatch_variant != nil and swatch_variant.featured_image != blank
+                  assign swatch_image_url = swatch_variant.featured_image | image_url: width: 900
+                endif
+              -%}
+              <button
+                type="button"
+                class="atelier-showcase-card__swatch{% if forloop.first %} is-selected{% endif %}"
+                role="listitem"
+                aria-label="{{ value.name | escape }}"
+                aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+                data-option-value="{{ value.name | escape }}"
+                {% if swatch_variant != nil %}
+                  data-variant-id="{{ swatch_variant.id }}"
+                  data-variant-url="{{ swatch_variant.url }}"
+                {% endif %}
+                {% if swatch_image_url != blank %}
+                  data-variant-image="{{ swatch_image_url }}"
+                {% endif %}
+                {% if swatch_style != blank %}
+                  style="{{ swatch_style }}"
+                {% endif %}
+              ></button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="atelier-showcase-card__action-wrap">
+        {%- if quick_action == 'quick_view' -%}
+          <div class="atelier-showcase-card__quick-host visually-hidden" aria-hidden="true">
+            {% render 'quick-add', product: product, section_id: section.id, block: section %}
+          </div>
+          <button
+            type="button"
+            class="atelier-showcase-card__action"
+            data-showcase-quick
+            aria-label="{{ 'content.showcase_quick_view' | t: product: product.title }}"
+          >
+            <span class="atelier-showcase-card__action-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.25 3.25a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" stroke="currentColor" stroke-width="1.25"/>
+                <path d="M10.2 10.2 13 13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </button>
+        {%- else -%}
+          <a href="{{ product.url }}" class="atelier-showcase-card__action" aria-label="{{ product.title | escape }}">
+            <span class="atelier-showcase-card__action-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.25 3.25a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" stroke="currentColor" stroke-width="1.25"/>
+                <path d="M10.2 10.2 13 13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </article>
+</product-card>

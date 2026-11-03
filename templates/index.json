@@ -9,84 +9,89 @@
  */{
   "sections": {
     "hero_jVaWmY": {
-      "type": "hero",
+      "type": "atelier-editorial-hero",
       "blocks": {
-        "text_YLPk4p": {
-          "type": "text",
-          "name": "t:names.heading",
+        "slide_1": {
+          "type": "slide",
           "settings": {
-            "text": "<p>Browse our latest products</p>",
-            "text_color": "{{ settings.color_palette.background }}",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
+            "eyebrow": "THE NEW COLLECTION",
+            "headline": "Designed to Move Beyond",
+            "cta_label": "Discover the Collection",
+            "cta_link": "shopify://collections/all",
+            "preview_title": "Form in Motion"
+          }
         },
-        "button_H9gpTf": {
-          "type": "button",
-          "name": "t:names.button",
+        "slide_2": {
+          "type": "slide",
           "settings": {
-            "label": "Shop all",
-            "link": "shopify://collections/all",
-            "open_in_new_tab": false,
-            "style_class": "button-custom",
-            "custom_button_background": "rgba(0,0,0,0)",
-            "custom_button_text": "{{ settings.color_palette.background }}",
-            "custom_button_border": "{{ settings.color_palette.background }}",
-            "width": "fit-content",
-            "custom_width": 100,
-            "width_mobile": "fit-content",
-            "custom_width_mobile": 100
-          },
-          "blocks": {}
+            "eyebrow": "ESSENTIAL SILHOUETTES",
+            "headline": "Form in Motion",
+            "cta_label": "Shop the Edit",
+            "cta_link": "shopify://collections/all",
+            "preview_title": "Crafted for the Long View"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "ATELIER NØR",
+            "headline": "Crafted for the Long View",
+            "cta_label": "Explore Lookbook",
+            "cta_link": "shopify://collections/all",
+            "preview_title": "Designed to Move Beyond"
+          }
         }
       },
       "block_order": [
-        "text_YLPk4p",
-        "button_H9gpTf"
+        "slide_1",
+        "slide_2",
+        "slide_3"
       ],
-      "name": "t:names.hero",
+      "name": "Editorial hero carousel",
       "settings": {
-        "media_type_1": "image",
-        "media_type_2": "image",
-        "stack_media_on_mobile": false,
-        "custom_mobile_media": false,
-        "media_type_1_mobile": "image",
-        "media_type_2_mobile": "image",
-        "open_in_new_tab": false,
-        "content_direction": "column",
-        "vertical_on_mobile": true,
-        "horizontal_alignment": "space-between",
-        "vertical_alignment": "flex-end",
-        "align_baseline": true,
-        "horizontal_alignment_flex_direction_column": "flex-start",
-        "vertical_alignment_flex_direction_column": "flex-end",
-        "gap": 24,
-        "section_width": "full-width",
-        "section_height": "full-screen",
-        "section_height_custom": 50,
-        "background_color": "rgba(0,0,0,0)",
-        "toggle_overlay": true,
-        "overlay_color": "#12121266",
-        "overlay_style": "solid",
-        "gradient_direction": "to bottom",
-        "blurred_reflection": false,
-        "reflection_opacity": 75,
+        "full_screen": true,
+        "custom_height": 85,
+        "overlay_opacity": 55,
+        "autoplay": true,
+        "autoplay_interval": 6,
+        "directional_cursor": true,
+        "show_preview_card": true,
+        "show_side_control": true
+      }
+    },
+    "curated_showcase_home": {
+      "type": "atelier-curated-showcase",
+      "name": "Curated product showcase",
+      "settings": {
+        "heading": "CURATED FOR YOU",
+        "max_products": 8,
+        "quick_action": "quick_view",
+        "show_swatches": true,
+        "show_badges": true,
+        "show_progress": true,
+        "card_radius": 20,
+        "accent_color": "#3B3F32",
+        "track_color": "#3B3F3240",
+        "compose_with_marquee": true,
+        "composed_height_vh": 62,
+        "padding-block-start": 28,
+        "padding-block-end": 20
+      }
+    },
+    "editorial_marquee_home": {
+      "type": "atelier-editorial-marquee",
+      "name": "Editorial marquee",
+      "settings": {
+        "text": "EFFORTLESS BY DESIGN · TIMELESS IN EVERY DETAIL · DRESS BEYOND TRENDS · THE ART OF MODERN FEMININITY ·",
+        "compose_with_showcase": true,
+        "paired_showcase_vh": 62,
+        "font_scale": 100,
+        "phrase_gap": 2.5,
+        "stroke_width": 1,
+        "stroke_color": "#171717",
+        "background_color": "#FFFFFF",
+        "base_speed": 45,
+        "scroll_sensitivity": 35,
         "padding-block-start": 0,
         "padding-block-end": 0
       }
@@ -280,6 +285,8 @@
   },
   "order": [
     "hero_jVaWmY",
+    "curated_showcase_home",
+    "editorial_marquee_home",
     "product_list_fa6P9H"
   ]
 }

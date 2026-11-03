@@ -10,6 +10,7 @@ const initAtelierHeader = () => {
   if (!(header instanceof HTMLElement) || header.dataset.atelierBound === 'true') return;
 
   header.dataset.atelierBound = 'true';
+  header.dataset.atelierReady = 'true';
   let leaveTimer = 0;
 
   const hasOpenMenu = () =>

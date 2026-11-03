@@ -1,0 +1,692 @@
+{% comment %}
+  Full-viewport editorial hero carousel with directional cursor and next-slide preview.
+  @example
+  Add to the homepage as the first section beneath a transparent header.
+{% endcomment %}
+
+{%- liquid
+  assign catalog_products = collections.all.products
+  assign overlay_opacity = section.settings.overlay_opacity | divided_by: 100.0
+  assign first_block = section.blocks.first
+-%}
+
+<script
+  src="{{ 'atelier-editorial-hero.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<atelier-editorial-hero
+    class="atelier-editorial-hero{% if section.settings.full_screen %} atelier-editorial-hero--full-viewport{% endif %}"
+    data-autoplay="{{ section.settings.autoplay }}"
+    data-autoplay-interval="{{ section.settings.autoplay_interval | times: 1000 }}"
+    data-directional-cursor="{{ section.settings.directional_cursor }}"
+    data-active-index="0"
+    style="
+      --atelier-hero-overlay: {{ overlay_opacity }};
+      --atelier-hero-min-height: {% if section.settings.full_screen %}100svh{% else %}{{ section.settings.custom_height }}svh{% endif %};
+    "
+  >
+    <div class="atelier-editorial-hero__media" aria-hidden="true">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign slide_image = block.settings.image
+          assign slide_image_mobile = block.settings.image_mobile | default: slide_image
+          if slide_image == blank and catalog_products.size > 0
+            assign product_index = forloop.index0 | modulo: catalog_products.size
+            assign fallback_product = catalog_products[product_index]
+            assign slide_image = fallback_product.featured_image
+            assign slide_image_mobile = slide_image
+          endif
+        -%}
+        <div
+          ref="frames[]"
+          class="atelier-editorial-hero__frame{% if forloop.first %} is-active{% endif %}"
+          {{ block.shopify_attributes }}
+        >
+          {%- if slide_image != blank -%}
+            <picture class="atelier-editorial-hero__picture">
+              {%- if block.settings.image_mobile != blank -%}
+                <source
+                  media="(max-width: 749px)"
+                  srcset="
+                    {{ slide_image_mobile | image_url: width: 750 }} 750w,
+                    {{ slide_image_mobile | image_url: width: 1100 }} 1100w
+                  "
+                  sizes="100vw"
+                >
+              {%- endif -%}
+              {%- if forloop.first -%}
+                {{
+                  slide_image
+                  | image_url: width: 3840
+                  | image_tag:
+                    widths: '750, 1100, 1500, 2000, 2560, 3200, 3840',
+                    sizes: '100vw',
+                    loading: 'eager',
+                    fetchpriority: 'high',
+                    class: 'atelier-editorial-hero__image',
+                    alt: ''
+                }}
+              {%- else -%}
+                {{
+                  slide_image
+                  | image_url: width: 3840
+                  | image_tag:
+                    widths: '750, 1100, 1500, 2000, 2560, 3200, 3840',
+                    sizes: '100vw',
+                    loading: 'lazy',
+                    class: 'atelier-editorial-hero__image',
+                    alt: ''
+                }}
+              {%- endif -%}
+            </picture>
+          {%- else -%}
+            <div class="atelier-editorial-hero__placeholder"></div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+      <div class="atelier-editorial-hero__gradient"></div>
+    </div>
+
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign slide_image = block.settings.image
+        if slide_image == blank and catalog_products.size > 0
+          assign product_index = forloop.index0 | modulo: catalog_products.size
+          assign fallback_product = catalog_products[product_index]
+          assign slide_image = fallback_product.featured_image
+        endif
+        assign preview_title = block.settings.preview_title | default: block.settings.headline
+        assign preview_url = slide_image | image_url: width: 240
+        assign cta_url = block.settings.cta_link | default: routes.collections_url
+      -%}
+      <div
+        ref="slides[]"
+        class="atelier-editorial-hero__slide-data visually-hidden"
+        data-active="{% if forloop.first %}true{% else %}false{% endif %}"
+        data-eyebrow="{{ block.settings.eyebrow | escape }}"
+        data-headline="{{ block.settings.headline | escape }}"
+        data-cta-label="{{ block.settings.cta_label | escape }}"
+        data-cta-url="{{ cta_url }}"
+        data-preview-title="{{ preview_title | escape }}"
+        data-preview-image="{{ preview_url }}"
+        {{ block.shopify_attributes }}
+      ></div>
+    {%- endfor -%}
+
+    <div ref="stage" class="atelier-editorial-hero__stage">
+      <button
+        ref="prevZone"
+        type="button"
+        class="atelier-editorial-hero__zone atelier-editorial-hero__zone--prev"
+        aria-label="{{ 'content.pagination.previous' | t }}"
+      ></button>
+      <button
+        ref="nextZone"
+        type="button"
+        class="atelier-editorial-hero__zone atelier-editorial-hero__zone--next"
+        aria-label="{{ 'content.pagination.next' | t }}"
+      ></button>
+
+      <div ref="cursor" class="atelier-editorial-hero__cursor" hidden aria-hidden="true">
+        <span class="atelier-editorial-hero__cursor-box">
+          <span class="atelier-editorial-hero__cursor-arrow"></span>
+        </span>
+      </div>
+
+      <div class="atelier-editorial-hero__content">
+        {%- if first_block -%}
+          {%- assign first_cta = first_block.settings.cta_link | default: routes.collections_url -%}
+        {%- endif -%}
+        <p ref="eyebrow" class="atelier-editorial-hero__eyebrow">
+          {{ first_block.settings.eyebrow | default: 'THE NEW COLLECTION' }}
+        </p>
+        <h2 ref="headline" class="atelier-editorial-hero__headline">
+          {{ first_block.settings.headline | default: 'Designed to Move Beyond' }}
+        </h2>
+        <a
+          ref="cta"
+          class="atelier-editorial-hero__cta"
+          href="{{ first_cta | default: routes.collections_url }}"
+        >
+          <span ref="ctaLabel" class="atelier-editorial-hero__cta-label">
+            {{ first_block.settings.cta_label | default: 'Discover the Collection' }}
+          </span>
+          <span class="atelier-editorial-hero__cta-arrow" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/>
+            </svg>
+          </span>
+        </a>
+      </div>
+
+      {%- if section.settings.show_side_control -%}
+        <button
+          ref="sideNext"
+          type="button"
+          class="atelier-editorial-hero__side-control"
+          aria-label="{{ 'content.pagination.next' | t }}"
+        >
+          <span class="atelier-editorial-hero__side-control-arrow" aria-hidden="true"></span>
+        </button>
+      {%- endif -%}
+
+      {%- if section.settings.show_preview_card -%}
+        <button
+          ref="preview"
+          type="button"
+          class="atelier-editorial-hero__preview"
+          aria-label="{{ 'content.editorial_hero_next_preview' | t }}"
+        >
+          <span ref="previewThumb" class="atelier-editorial-hero__preview-thumb"></span>
+          <span class="atelier-editorial-hero__preview-copy">
+            <span class="atelier-editorial-hero__preview-label">{{ 'content.editorial_hero_next_slide' | t }}</span>
+            <span ref="previewTitle" class="atelier-editorial-hero__preview-title"></span>
+          </span>
+        </button>
+      {%- endif -%}
+    </div>
+</atelier-editorial-hero>
+
+{% stylesheet %}
+  .hero-wrapper:has(.atelier-editorial-hero--full-viewport) {
+    --hero-height-offset: 0px;
+  }
+
+  #header-group:has(> .header-section > #header-component) ~ * .hero-wrapper:first-child:has(.atelier-editorial-hero--full-viewport) {
+    --hero-height-offset: var(--header-group-height, 0);
+  }
+
+  .shopify-section:has(.hero-wrapper .atelier-editorial-hero) {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .atelier-editorial-hero {
+    position: relative;
+    display: block;
+    min-height: calc(var(--atelier-hero-min-height, 100svh) - var(--hero-height-offset, 0px));
+    max-width: 100%;
+    color: rgb(255 255 255);
+    overflow: hidden;
+  }
+
+  @supports (height: 100svh) {
+    .atelier-editorial-hero--full-viewport {
+      --atelier-hero-min-height: 100svh;
+    }
+  }
+
+  .atelier-editorial-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .atelier-editorial-hero__frame {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity;
+  }
+
+  .atelier-editorial-hero__frame.is-active {
+    opacity: 1;
+  }
+
+  .atelier-editorial-hero__picture,
+  .atelier-editorial-hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  .atelier-editorial-hero__placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgb(23 23 23);
+  }
+
+  .atelier-editorial-hero__gradient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgb(0 0 0 / calc(var(--atelier-hero-overlay, 0.15) * 0.35)) 0%,
+      rgb(0 0 0 / calc(var(--atelier-hero-overlay, 0.45) * 0.55)) 45%,
+      rgb(0 0 0 / var(--atelier-hero-overlay, 0.55)) 100%
+    );
+  }
+
+  .atelier-editorial-hero__stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-height: inherit;
+    padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+    padding-block: clamp(5rem, 12vh, 7rem) clamp(2.25rem, 7vh, 4.5rem);
+  }
+
+  .atelier-editorial-hero[data-cursor-active] .atelier-editorial-hero__stage {
+    cursor: none;
+  }
+
+  .atelier-editorial-hero__zone {
+    position: absolute;
+    inset-block: 0;
+    width: 50%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    z-index: 2;
+    cursor: none;
+  }
+
+  .atelier-editorial-hero__zone--prev {
+    inset-inline-start: 0;
+  }
+
+  .atelier-editorial-hero__zone--next {
+    inset-inline-end: 0;
+  }
+
+  @media (pointer: coarse) {
+    .atelier-editorial-hero__zone {
+      cursor: auto;
+    }
+
+    .atelier-editorial-hero__cursor {
+      display: none !important;
+    }
+  }
+
+  .atelier-editorial-hero__cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    pointer-events: none;
+    transform: translate(-9999px, -9999px);
+    margin: -2rem 0 0 -2.75rem;
+  }
+
+  .atelier-editorial-hero__cursor-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5.5rem;
+    height: 3.75rem;
+    border: 1px solid rgb(255 255 255 / 85%);
+    background: transparent;
+  }
+
+  .atelier-editorial-hero__cursor-arrow {
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+  }
+
+  .atelier-editorial-hero__cursor[data-direction='next'] .atelier-editorial-hero__cursor-arrow {
+    margin-inline-start: 0.15rem;
+    border-width: 0.45rem 0 0.45rem 0.65rem;
+    border-color: transparent transparent transparent rgb(255 255 255);
+  }
+
+  .atelier-editorial-hero__cursor[data-direction='prev'] .atelier-editorial-hero__cursor-arrow {
+    margin-inline-end: 0.15rem;
+    border-width: 0.45rem 0.65rem 0.45rem 0;
+    border-color: transparent rgb(255 255 255) transparent transparent;
+  }
+
+  .atelier-editorial-hero__content {
+    position: relative;
+    z-index: 3;
+    max-width: min(42rem, 90vw);
+    pointer-events: auto;
+    user-select: none;
+  }
+
+  .atelier-editorial-hero__eyebrow {
+    margin: 0 0 0.85rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    transition: opacity 220ms ease;
+  }
+
+  .atelier-editorial-hero__headline {
+    margin: 0 0 1.75rem;
+    font-family: var(--font-heading--family);
+    font-size: clamp(2.25rem, 5.2vw, 4.25rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    transition: opacity 220ms ease;
+  }
+
+  .atelier-editorial-hero__eyebrow.is-fading,
+  .atelier-editorial-hero__headline.is-fading {
+    opacity: 0;
+  }
+
+  .atelier-editorial-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2.5rem;
+    min-width: min(100%, 18rem);
+    padding: 0.95rem 1.15rem 0.95rem 1.25rem;
+    background: rgb(255 255 255);
+    color: rgb(23 23 23);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    transition:
+      transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 320ms ease;
+    cursor: pointer;
+  }
+
+  .atelier-editorial-hero__cta:hover,
+  .atelier-editorial-hero__cta:focus-visible {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  .atelier-editorial-hero__cta-arrow {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: rgb(23 23 23);
+  }
+
+  .atelier-editorial-hero__side-control {
+    position: absolute;
+    inset-inline-end: clamp(1.25rem, 4vw, 3.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 2.35rem;
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / 80%);
+    background: transparent;
+    color: rgb(255 255 255);
+    cursor: pointer;
+    transition: border-color 280ms ease, opacity 280ms ease;
+  }
+
+  .atelier-editorial-hero__side-control:hover,
+  .atelier-editorial-hero__side-control:focus-visible {
+    opacity: 0.85;
+    border-color: rgb(255 255 255);
+  }
+
+  .atelier-editorial-hero__side-control-arrow {
+    display: block;
+    width: 0;
+    height: 0;
+    margin-inline-start: 0.1rem;
+    border-width: 0.35rem 0 0.35rem 0.5rem;
+    border-style: solid;
+    border-color: transparent transparent transparent currentColor;
+  }
+
+  .atelier-editorial-hero__preview {
+    position: absolute;
+    z-index: 4;
+    inset-inline-end: clamp(1.25rem, 4vw, 3.5rem);
+    inset-block-end: clamp(2.25rem, 7vh, 4.5rem);
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    max-width: min(20rem, 42vw);
+    padding: 0;
+    border: 0;
+    background: rgb(255 255 255);
+    color: rgb(23 23 23);
+    text-align: start;
+    cursor: pointer;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-editorial-hero__preview:hover,
+  .atelier-editorial-hero__preview:focus-visible {
+    transform: translateY(-2px);
+  }
+
+  .atelier-editorial-hero__preview-thumb {
+    flex-shrink: 0;
+    width: 5.5rem;
+    background-size: cover;
+    background-position: center;
+    background-color: rgb(240 240 240);
+  }
+
+  .atelier-editorial-hero__preview-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.85rem 1rem;
+    min-width: 0;
+  }
+
+  .atelier-editorial-hero__preview-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(23 23 23 / 55%);
+  }
+
+  .atelier-editorial-hero__preview-title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
+
+  @media screen and (max-width: 749px) {
+    .atelier-editorial-hero__side-control {
+      display: none;
+    }
+
+    .atelier-editorial-hero__preview {
+      max-width: min(16rem, 58vw);
+    }
+
+    .atelier-editorial-hero__preview-thumb {
+      width: 4.25rem;
+    }
+
+    .atelier-editorial-hero__headline {
+      margin-bottom: 1.25rem;
+    }
+
+    .atelier-editorial-hero__stage {
+      padding-block-end: max(2rem, env(safe-area-inset-bottom));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-editorial-hero__frame {
+      transition: none;
+    }
+
+    .atelier-editorial-hero__eyebrow,
+    .atelier-editorial-hero__headline,
+    .atelier-editorial-hero__cta,
+    .atelier-editorial-hero__preview {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Editorial hero carousel",
+  "tag": "section",
+  "class": "hero-wrapper section-wrapper",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "full_screen",
+      "label": "Full screen height",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "custom_height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "svh",
+      "label": "Custom height",
+      "default": 85,
+      "visible_if": "{{ section.settings.full_screen == false }}"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Bottom gradient intensity",
+      "default": 55
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Autoplay slides",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_interval",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "unit": "s",
+      "label": "Autoplay interval",
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "directional_cursor",
+      "label": "Directional cursor on desktop",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_preview_card",
+      "label": "Show next slide preview",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_side_control",
+      "label": "Show side arrow control",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background image"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "Mobile background image"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "default": "THE NEW COLLECTION"
+        },
+        {
+          "type": "text",
+          "id": "headline",
+          "label": "Headline",
+          "default": "Designed to Move Beyond"
+        },
+        {
+          "type": "text",
+          "id": "cta_label",
+          "label": "Button label",
+          "default": "Discover the Collection"
+        },
+        {
+          "type": "url",
+          "id": "cta_link",
+          "label": "Button link"
+        },
+        {
+          "type": "text",
+          "id": "preview_title",
+          "label": "Preview title",
+          "info": "Shown in the next-slide card when this slide follows another."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Editorial hero carousel",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "THE NEW COLLECTION",
+            "headline": "Designed to Move Beyond",
+            "cta_label": "Discover the Collection",
+            "preview_title": "Quiet Structure"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "ESSENTIAL SILHOUETTES",
+            "headline": "Form in Motion",
+            "cta_label": "Shop the Edit",
+            "preview_title": "Evening Light"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "ATELIER NØR",
+            "headline": "Crafted for the Long View",
+            "cta_label": "Explore Lookbook",
+            "preview_title": "Designed to Move Beyond"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

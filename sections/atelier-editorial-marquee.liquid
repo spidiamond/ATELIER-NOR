@@ -1,0 +1,340 @@
+{% comment %}
+  Scroll-reactive infinite editorial typography marquee.
+  @example
+  Place below the curated product showcase on the homepage.
+{% endcomment %}
+
+{%- liquid
+  assign marquee_text = section.settings.text | strip
+  if marquee_text == blank
+    assign marquee_text = 'EFFORTLESS BY DESIGN · TIMELESS IN EVERY DETAIL · DRESS BEYOND TRENDS · THE ART OF MODERN FEMININITY ·'
+  endif
+
+  assign repeats = section.settings.segment_repeats | default: 2
+  assign composed = section.settings.compose_with_showcase
+  assign showcase_vh = section.settings.paired_showcase_vh | default: 62
+  assign marquee_vh = 100 | minus: showcase_vh
+-%}
+
+<script
+  src="{{ 'atelier-editorial-marquee.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<div class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"></div>
+
+<atelier-editorial-marquee
+  class="
+    section
+    section--full-width
+    atelier-editorial-marquee
+    spacing-style
+    {% if section.settings.background_color != blank %}color-custom-{{ section.id }}{% endif %}
+  "
+  {% if composed %}
+    data-composed-viewport="marquee"
+  {% endif %}
+  data-base-speed="{{ section.settings.base_speed }}"
+  data-scroll-sensitivity="{{ section.settings.scroll_sensitivity }}"
+  data-scroll-blend="{{ section.settings.scroll_blend }}"
+  data-influence-decay="{{ section.settings.influence_decay }}"
+  data-min-influence="{{ section.settings.min_influence }}"
+  data-max-influence="{{ section.settings.max_influence }}"
+  style="
+    {% render 'spacing-style', settings: section.settings %}
+    {% if composed %}
+      --atelier-composed-marquee-vh: {{ marquee_vh }};
+      --atelier-composed-showcase-vh: {{ showcase_vh }};
+    {% endif %}
+    --marquee-stroke: {{ section.settings.stroke_color }};
+    --marquee-stroke-width: {{ section.settings.stroke_width }}px;
+    --marquee-font-scale: {{ section.settings.font_scale | times: 0.01 }};
+    --marquee-track-gap: {{ section.settings.phrase_gap }}rem;
+    {% if section.settings.background_color != blank %}
+      --color-background: {{ section.settings.background_color }};
+    {% endif %}
+  "
+>
+  <div class="atelier-editorial-marquee__inner">
+    <p class="visually-hidden">{{ marquee_text }}</p>
+
+    <div class="atelier-editorial-marquee__viewport" aria-hidden="true">
+      <div ref="track" class="atelier-editorial-marquee__track">
+        {%- for copy in (1..2) -%}
+          <div
+            {% if forloop.first %}
+              ref="segment"
+            {% endif %}
+            class="atelier-editorial-marquee__segment"
+          >
+            {%- for i in (1..repeats) -%}
+              <span class="atelier-editorial-marquee__phrase">{{ marquee_text | escape }}</span>
+            {%- endfor -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</atelier-editorial-marquee>
+
+{% stylesheet %}
+  .shopify-section:has(> .atelier-editorial-marquee),
+  .shopify-section:has(> atelier-editorial-marquee) {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .atelier-editorial-marquee {
+    display: block;
+    max-width: 100%;
+    background: rgb(var(--color-background-rgb, 255 255 255));
+    overflow: hidden;
+    overflow-x: clip;
+  }
+
+  @media screen and (min-width: 990px) {
+    .atelier-editorial-marquee[data-composed-viewport='marquee'] {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: calc(var(--atelier-composed-marquee-vh, 38) * 1svh);
+      padding-block: clamp(1.25rem, 3vh, 2.5rem);
+    }
+  }
+
+  .atelier-editorial-marquee__inner {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .atelier-editorial-marquee__viewport {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .atelier-editorial-marquee__track {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+  }
+
+  .atelier-editorial-marquee__segment {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--marquee-track-gap, 2.5rem);
+    padding-inline-end: var(--marquee-track-gap, 2.5rem);
+  }
+
+  .atelier-editorial-marquee__phrase {
+    flex-shrink: 0;
+    font-family: var(--font-heading--family);
+    font-size: calc(clamp(2.75rem, 11.5vw, 8.75rem) * var(--marquee-font-scale, 1));
+    font-weight: 600;
+    line-height: 0.95;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: var(--marquee-stroke-width, 1px) var(--marquee-stroke, rgb(23 23 23));
+    paint-order: stroke fill;
+  }
+
+  .atelier-editorial-marquee[data-reduced-motion] .atelier-editorial-marquee__track {
+    transform: none !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+  }
+
+  .atelier-editorial-marquee[data-reduced-motion] .atelier-editorial-marquee__segment:last-child {
+    display: none;
+  }
+
+  .atelier-editorial-marquee[data-reduced-motion] .atelier-editorial-marquee__phrase {
+    white-space: normal;
+    text-align: center;
+    font-size: clamp(1.75rem, 6vw, 3.25rem);
+  }
+
+  @media screen and (max-width: 989px) {
+    .atelier-editorial-marquee {
+      padding-block: clamp(2rem, 8vw, 3.5rem);
+    }
+
+    .atelier-editorial-marquee__phrase {
+      font-size: calc(clamp(2.25rem, 14vw, 4.5rem) * var(--marquee-font-scale, 1));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Editorial marquee",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Marquee text",
+      "default": "EFFORTLESS BY DESIGN · TIMELESS IN EVERY DETAIL · DRESS BEYOND TRENDS · THE ART OF MODERN FEMININITY ·"
+    },
+    {
+      "type": "checkbox",
+      "id": "compose_with_showcase",
+      "label": "Pair with showcase for ~100vh desktop composition",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "paired_showcase_vh",
+      "min": 54,
+      "max": 72,
+      "step": 1,
+      "unit": "vh",
+      "label": "Showcase height share (desktop)",
+      "default": 62,
+      "info": "Marquee uses the remaining viewport height. Match the showcase section's composed height setting.",
+      "visible_if": "{{ section.settings.compose_with_showcase }}"
+    },
+    {
+      "type": "range",
+      "id": "font_scale",
+      "min": 80,
+      "max": 120,
+      "step": 5,
+      "unit": "%",
+      "label": "Type scale",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "phrase_gap",
+      "min": 1,
+      "max": 4,
+      "step": 0.5,
+      "unit": "rem",
+      "label": "Phrase spacing",
+      "default": 2.5
+    },
+    {
+      "type": "range",
+      "id": "stroke_width",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "unit": "px",
+      "label": "Outline stroke width",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "stroke_color",
+      "label": "Outline color",
+      "default": "#171717"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "range",
+      "id": "base_speed",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "label": "Base speed",
+      "default": 45
+    },
+    {
+      "type": "range",
+      "id": "scroll_sensitivity",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "label": "Scroll sensitivity",
+      "default": 35
+    },
+    {
+      "type": "range",
+      "id": "scroll_blend",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "label": "Scroll response smoothing",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "influence_decay",
+      "min": 90,
+      "max": 99,
+      "step": 1,
+      "label": "Return to base speed",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "min_influence",
+      "min": -250,
+      "max": -50,
+      "step": 25,
+      "label": "Maximum reverse speed",
+      "default": -175
+    },
+    {
+      "type": "range",
+      "id": "max_influence",
+      "min": 50,
+      "max": 250,
+      "step": 25,
+      "label": "Maximum forward speed",
+      "default": 175
+    },
+    {
+      "type": "range",
+      "id": "segment_repeats",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "label": "Phrase repeats per segment",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Editorial marquee"
+    }
+  ]
+}
+{% endschema %}

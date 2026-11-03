@@ -1,0 +1,751 @@
+{% comment %}
+  Editorial product showcase with tabbed collections and horizontal carousel.
+  @example
+  Place below the homepage hero and above the default product list section.
+{% endcomment %}
+
+{%- liquid
+  assign max_products = section.settings.max_products | default: 8
+  assign fallback_labels = 'Effortless Silhouette|Tailored to Perfection|Premium Textures|Made for Every Day|Modern Wardrobe Essential|Statement Outerwear|Quiet Luxury|Refined Ease' | split: '|'
+
+-%}
+
+<script
+  src="{{ 'atelier-curated-showcase.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<div class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"></div>
+
+<atelier-curated-showcase
+  class="
+    section
+    section--page-width
+    atelier-curated-showcase
+    spacing-style
+    {% if section.settings.background_color != blank %}color-custom-{{ section.id }}{% endif %}
+  "
+  {% if section.settings.compose_with_marquee %}
+    data-composed-viewport="showcase"
+  {% endif %}
+  style="
+    {% render 'spacing-style', settings: section.settings %}
+    {% if section.settings.compose_with_marquee %}
+      --atelier-composed-showcase-vh: {{ section.settings.composed_height_vh }};
+    {% endif %}
+    --showcase-card-radius: {{ section.settings.card_radius }}px;
+    --showcase-accent: {{ section.settings.accent_color }};
+    --showcase-track: {{ section.settings.track_color }};
+  "
+  data-active-tab="0"
+>
+  <div class="atelier-curated-showcase__header">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="atelier-curated-showcase__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+
+    <div class="atelier-curated-showcase__tabs" role="tablist" aria-label="{{ section.settings.heading | escape }}">
+      {%- assign tab_labels = 'content.showcase_tab_best_sellers,content.showcase_tab_expert_picks,content.showcase_tab_new_arrivals' | split: ',' -%}
+      {%- for tab_label_key in tab_labels -%}
+        {%- assign tab_index = forloop.index0 -%}
+        <button
+          ref="tabs[]"
+          type="button"
+          class="atelier-curated-showcase__tab"
+          role="tab"
+          id="showcase-tab-{{ section.id }}-{{ tab_index }}"
+          aria-controls="showcase-panel-{{ section.id }}-{{ tab_index }}"
+          aria-selected="{% if tab_index == 0 %}true{% else %}false{% endif %}"
+          tabindex="{% if tab_index == 0 %}0{% else %}-1{% endif %}"
+        >
+          {{ tab_label_key | t }}
+        </button>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {%- for tab_label_key in tab_labels -%}
+    {%- liquid
+      assign tab_index = forloop.index0
+      case tab_index
+        when 0
+          assign active_collection = section.settings.collection_best_sellers
+        when 1
+          assign active_collection = section.settings.collection_expert_picks
+        when 2
+          assign active_collection = section.settings.collection_new_arrivals
+      endcase
+
+      if active_collection == blank
+        assign active_collection = collections.all
+      endif
+
+      assign tab_offset = tab_index | times: 4
+    -%}
+
+    <div
+      ref="panels[]"
+      class="atelier-curated-showcase__panel"
+      role="tabpanel"
+      id="showcase-panel-{{ section.id }}-{{ tab_index }}"
+      aria-labelledby="showcase-tab-{{ section.id }}-{{ tab_index }}"
+      {% unless tab_index == 0 %}
+        hidden
+      {% endunless %}
+    >
+      <div ref="scrollers[]" class="atelier-curated-showcase__scroller" tabindex="0">
+        <div class="atelier-curated-showcase__track">
+          {%- assign rendered_count = 0 -%}
+          {%- for product in active_collection.products limit: max_products -%}
+            {%- if active_collection.handle == 'all' and section.settings.collection_best_sellers == blank and section.settings.collection_expert_picks == blank and section.settings.collection_new_arrivals == blank -%}
+              {%- if forloop.index0 < tab_offset -%}
+                {%- continue -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- liquid
+              assign feature_label = ''
+              assign badge_label = ''
+              for block in section.blocks
+                if block.type == 'product_feature' and block.settings.product != blank
+                  if block.settings.product.id == product.id
+                    assign feature_label = block.settings.feature_label
+                    assign badge_label = block.settings.badge_label
+                    break
+                  endif
+                endif
+              endfor
+
+              if feature_label == blank
+                assign fallback_index = rendered_count | modulo: fallback_labels.size
+                for fallback_label in fallback_labels
+                  if forloop.index0 == fallback_index
+                    assign feature_label = fallback_label
+                  endif
+                endfor
+              endif
+            -%}
+
+            <div class="atelier-curated-showcase__item">
+              {% render 'atelier-showcase-card',
+                product: product,
+                section: section,
+                feature_label: feature_label,
+                badge_label: badge_label,
+                show_swatches: section.settings.show_swatches,
+                show_badges: section.settings.show_badges,
+                quick_action: section.settings.quick_action
+              %}
+            </div>
+
+            {%- assign rendered_count = rendered_count | plus: 1 -%}
+            {%- if rendered_count >= max_products -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+
+      {%- if section.settings.show_progress -%}
+        <div
+          ref="progressTracks[]"
+          class="atelier-curated-showcase__progress"
+          aria-hidden="true"
+        >
+          <div ref="progressFills[]" class="atelier-curated-showcase__progress-fill"></div>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+</atelier-curated-showcase>
+
+{% stylesheet %}
+  .atelier-curated-showcase {
+    --showcase-gap: clamp(0.65rem, 1.2vw, 0.85rem);
+    --showcase-section-gap: clamp(2rem, 5vw, 3.5rem);
+    display: block;
+    max-width: 100%;
+    overflow-x: clip;
+    padding-block: var(--showcase-section-gap);
+  }
+
+  .shopify-section:has(> .atelier-curated-showcase),
+  .shopify-section:has(> atelier-curated-showcase) {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  @media screen and (min-width: 990px) {
+    .atelier-curated-showcase[data-composed-viewport='showcase'] {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: calc(var(--atelier-composed-showcase-vh, 62) * 1svh);
+      padding-block: clamp(1rem, 2.2vh, 1.75rem);
+    }
+
+    .atelier-curated-showcase[data-composed-viewport='showcase'] .atelier-curated-showcase__header {
+      margin-block-end: clamp(1rem, 2vh, 1.5rem);
+      gap: clamp(0.75rem, 1.5vh, 1.25rem);
+    }
+
+    .atelier-curated-showcase[data-composed-viewport='showcase'] .atelier-curated-showcase__panel {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .atelier-curated-showcase[data-composed-viewport='showcase'] .atelier-curated-showcase__scroller {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
+  }
+
+  .atelier-curated-showcase__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1.25rem, 3vw, 1.75rem);
+    margin-block-end: clamp(1.75rem, 4vw, 2.5rem);
+    text-align: center;
+  }
+
+  .atelier-curated-showcase__heading {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.75rem, 3.6vw, 2.65rem);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.1;
+    color: var(--showcase-accent, rgb(59 63 50));
+  }
+
+  .atelier-curated-showcase__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(1.25rem, 3vw, 2.25rem);
+  }
+
+  .atelier-curated-showcase__tab {
+    position: relative;
+    padding: 0.35rem 0 0.55rem;
+    border: 0;
+    background: transparent;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+    font-family: var(--font-body--family);
+    font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition:
+      color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 280ms ease;
+  }
+
+  .atelier-curated-showcase__tab::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    height: 1px;
+    background: var(--showcase-accent, rgb(59 63 50));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-curated-showcase__tab[aria-selected='true'] {
+    color: var(--showcase-accent, rgb(59 63 50));
+  }
+
+  .atelier-curated-showcase__tab[aria-selected='true']::after {
+    transform: scaleX(1);
+  }
+
+  .atelier-curated-showcase__tab:focus-visible {
+    outline: 2px solid var(--showcase-accent, rgb(59 63 50));
+    outline-offset: 3px;
+  }
+
+  .atelier-curated-showcase__panel {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+    transition: opacity 280ms ease;
+  }
+
+  .atelier-curated-showcase__panel[hidden] {
+    display: none !important;
+  }
+
+  .atelier-curated-showcase__scroller {
+    container-type: inline-size;
+    container-name: showcase-carousel;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-inline: calc(-1 * var(--page-margin, 0px));
+    padding-inline: var(--page-margin, 0px);
+  }
+
+  .atelier-curated-showcase__scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .atelier-curated-showcase__track {
+    display: flex;
+    gap: var(--showcase-gap);
+    width: max-content;
+    min-width: 100%;
+    padding-block-end: 0.25rem;
+  }
+
+  .atelier-curated-showcase__item {
+    --showcase-card-width: min(78cqi, 22rem);
+    flex: 0 0 var(--showcase-card-width);
+    width: var(--showcase-card-width);
+    scroll-snap-align: start;
+  }
+
+  @media screen and (min-width: 750px) {
+    .atelier-curated-showcase__item {
+      --showcase-card-width: calc((100cqi - 2 * var(--showcase-gap)) / 3);
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .atelier-curated-showcase__item {
+      --showcase-card-width: calc((100cqi - 3 * var(--showcase-gap)) / 4);
+    }
+
+    .atelier-curated-showcase__track {
+      min-width: 100%;
+    }
+  }
+
+  .atelier-curated-showcase__progress {
+    position: relative;
+    width: min(12rem, 42%);
+    height: 2px;
+    margin: clamp(1.5rem, 3vw, 2rem) auto 0;
+    background: var(--showcase-track, rgb(59 63 50 / 22%));
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .atelier-curated-showcase__progress-fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    height: 100%;
+    background: var(--showcase-accent, rgb(59 63 50));
+    border-radius: inherit;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, width;
+  }
+
+  .atelier-showcase-card {
+    display: block;
+    height: 100%;
+  }
+
+  .atelier-showcase-card__surface {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: rgb(255 255 255);
+    border-radius: var(--showcase-card-radius, 20px);
+    overflow: hidden;
+  }
+
+  .atelier-showcase-card__media {
+    position: relative;
+    aspect-ratio: 4 / 4.35;
+    background: rgb(245 244 241);
+    overflow: hidden;
+  }
+
+  .atelier-showcase-card__media-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .atelier-showcase-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transition: opacity 420ms ease;
+  }
+
+  .atelier-showcase-card__image--secondary {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .atelier-showcase-card__surface:is(:hover, :focus-within) .atelier-showcase-card__image--primary:has(+ .atelier-showcase-card__image--secondary) {
+      opacity: 0;
+    }
+
+    .atelier-showcase-card__surface:is(:hover, :focus-within) .atelier-showcase-card__image--secondary {
+      opacity: 1;
+    }
+  }
+
+  .atelier-showcase-card__image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgb(235 233 228);
+  }
+
+  .atelier-showcase-card__badges {
+    position: absolute;
+    inset-block-start: 0.75rem;
+    inset-inline-start: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    z-index: 1;
+  }
+
+  .atelier-showcase-card__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: rgb(255 255 255);
+    background: rgb(59 63 50);
+  }
+
+  .atelier-showcase-card__badge--sale {
+    background: rgb(23 23 23);
+  }
+
+  .atelier-showcase-card__badge--new {
+    background: rgb(59 63 50);
+  }
+
+  .atelier-showcase-card__badge--pick {
+    background: rgb(89 94 78);
+  }
+
+  .atelier-showcase-card__feature {
+    display: flex;
+    align-items: center;
+    min-height: 2.35rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--showcase-accent, rgb(59 63 50));
+    border-radius: 0 0 0.35rem 0.35rem;
+    margin-block-start: -0.35rem;
+  }
+
+  .atelier-showcase-card__feature-text {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(255 255 255);
+    line-height: 1.25;
+  }
+
+  .atelier-showcase-card__meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: start;
+    padding: 0.85rem 0.85rem 1rem;
+    flex: 1;
+  }
+
+  .atelier-showcase-card__title {
+    margin: 0 0 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+  }
+
+  .atelier-showcase-card__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .atelier-showcase-card__title a:hover,
+  .atelier-showcase-card__title a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+  }
+
+  .atelier-showcase-card__price {
+    font-size: 0.8125rem;
+  }
+
+  .atelier-showcase-card__price .price {
+    margin: 0;
+  }
+
+  .atelier-showcase-card__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-block-start: 0.55rem;
+  }
+
+  .atelier-showcase-card__swatch {
+    width: 0.85rem;
+    height: 0.85rem;
+    padding: 0;
+    border: 1px solid rgb(23 23 23 / 15%);
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .atelier-showcase-card__swatch.is-selected {
+    box-shadow: 0 0 0 1px rgb(255 255 255), 0 0 0 2px rgb(23 23 23 / 65%);
+  }
+
+  .atelier-showcase-card__swatch:focus-visible {
+    outline: 2px solid var(--showcase-accent, rgb(59 63 50));
+    outline-offset: 2px;
+  }
+
+  .atelier-showcase-card__action-wrap {
+    position: relative;
+  }
+
+  .atelier-showcase-card__quick-host {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
+  }
+
+  .atelier-showcase-card__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--showcase-accent, rgb(59 63 50));
+    color: rgb(255 255 255);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
+  }
+
+  .atelier-showcase-card__action-icon {
+    display: inline-flex;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .atelier-showcase-card__action:hover,
+  .atelier-showcase-card__action:focus-visible {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-curated-showcase__tab,
+    .atelier-curated-showcase__panel,
+    .atelier-curated-showcase__progress-fill,
+    .atelier-showcase-card__image,
+    .atelier-showcase-card__action {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Curated product showcase",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "CURATED FOR YOU"
+    },
+    {
+      "type": "checkbox",
+      "id": "compose_with_marquee",
+      "label": "Pair with editorial marquee for ~100vh desktop composition",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "composed_height_vh",
+      "min": 54,
+      "max": 72,
+      "step": 1,
+      "unit": "vh",
+      "label": "Section height share (desktop)",
+      "default": 62,
+      "info": "Match the marquee section's showcase height share so both sections fill one viewport.",
+      "visible_if": "{{ section.settings.compose_with_marquee }}"
+    },
+    {
+      "type": "collection",
+      "id": "collection_best_sellers",
+      "label": "Best Sellers collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection_expert_picks",
+      "label": "Expert Picks collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection_new_arrivals",
+      "label": "New Arrivals collection"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "min": 4,
+      "max": 16,
+      "step": 1,
+      "label": "Maximum products per tab",
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "quick_action",
+      "label": "Quick action button",
+      "default": "quick_view",
+      "options": [
+        { "value": "quick_view", "label": "Quick view" },
+        { "value": "view_product", "label": "View product page" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_swatches",
+      "label": "Show color swatches",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badges",
+      "label": "Show product badges",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_progress",
+      "label": "Show carousel progress indicator",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "min": 8,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "label": "Card corner radius",
+      "default": 20
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#3B3F32"
+    },
+    {
+      "type": "color",
+      "id": "track_color",
+      "label": "Progress track color",
+      "default": "#3B3F3240"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_feature",
+      "name": "Product feature label",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "feature_label",
+          "label": "Feature strip label"
+        },
+        {
+          "type": "text",
+          "id": "badge_label",
+          "label": "Badge label",
+          "info": "Optional. Examples: NEW, EDITOR'S PICK. SALE is shown automatically when the product is on sale."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Curated product showcase"
+    }
+  ]
+}
+{% endschema %}

@@ -566,7 +566,10 @@
      and the next section starts at the bottom of the first viewport. */
   #header-group:has(> .header-section > #header-component[transparent])
     ~ *
-    .hero-wrapper:first-child:has(.hero--full-viewport) {
+    .hero-wrapper:first-child:has(.hero--full-viewport),
+  #header-group:has(> .header-section > #header-component[transparent])
+    ~ *
+    .hero-wrapper:first-child:has(.atelier-editorial-hero--full-viewport) {
     --hero-height-offset: 0px;
   }
 
