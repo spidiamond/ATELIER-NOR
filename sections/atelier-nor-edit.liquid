@@ -1,0 +1,567 @@
+{% comment %}
+  THE NØR EDIT — editorial storytelling with dual image marquees.
+  @example
+  Place immediately after the categories showcase on the homepage.
+{% endcomment %}
+
+{%- liquid
+  assign cta_url = section.settings.cta_link
+  if cta_url == blank
+    assign cta_url = routes.all_products_collection_url
+  endif
+-%}
+
+<div class="section-background"></div>
+
+<div
+  class="section section--full-width atelier-nor-edit spacing-style"
+  style="
+    {% render 'spacing-style', settings: section.settings %}
+    --nor-edit-bg: {{ section.settings.background_color }};
+    --nor-edit-gap: {{ section.settings.marquee_gap }}px;
+  "
+>
+  <div class="atelier-nor-edit__inner">
+    <div class="atelier-nor-edit__layout">
+      <div class="atelier-nor-edit__copy">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="atelier-nor-edit__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h2 class="atelier-nor-edit__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.subheading != blank -%}
+          <p class="atelier-nor-edit__subheading">{{ section.settings.subheading | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+          <div class="atelier-nor-edit__description rte">{{ section.settings.description }}</div>
+        {%- endif -%}
+
+        {%- if section.settings.cta_label != blank -%}
+          <a class="atelier-nor-edit__cta" href="{{ cta_url }}">
+            <span class="atelier-nor-edit__cta-label">{{ section.settings.cta_label | escape }}</span>
+            <span class="atelier-nor-edit__cta-arrow" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.25 9.75L9.75 4.25M9.75 4.25H5.5M9.75 4.25V8.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/>
+              </svg>
+            </span>
+          </a>
+        {%- endif -%}
+      </div>
+
+      <div class="atelier-nor-edit__marquees">
+        <p class="visually-hidden">
+          {{ section.settings.heading | escape }} — editorial fashion imagery in continuous motion.
+        </p>
+        {% render 'atelier-nor-edit-marquee-row',
+          section: section,
+          row: '1',
+          duration: section.settings.row_1_duration,
+          direction: 'ltr'
+        %}
+        {% render 'atelier-nor-edit-marquee-row',
+          section: section,
+          row: '2',
+          duration: section.settings.row_2_duration,
+          direction: 'rtl'
+        %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .shopify-section:has(.atelier-nor-edit) {
+    overflow: hidden;
+    max-width: 100%;
+    height: calc(100svh - var(--header-height, 3.5rem));
+    max-height: calc(100svh - var(--header-height, 3.5rem));
+  }
+
+  .shopify-section:not(.header-section) .atelier-nor-edit.section {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+    min-height: 0;
+    color: rgb(255 255 255);
+    overflow: hidden;
+  }
+
+  .atelier-nor-edit__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .atelier-nor-edit__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 3.5vw, 2.75rem);
+    width: 100%;
+    height: 58%;
+    max-height: 58%;
+    min-height: 0;
+    margin-block: 0;
+    background: var(--nor-edit-bg, #080808);
+    padding-block: clamp(1.25rem, 3vh, 2.25rem);
+    padding-inline-start: clamp(1.25rem, 4vw, 3.5rem);
+    padding-inline-end: 0;
+  }
+
+  .atelier-nor-edit__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.85rem, 1.6vh, 1.25rem);
+    max-width: 34rem;
+    margin-inline: auto;
+    padding-inline: clamp(0.5rem, 2vw, 1.5rem);
+    text-align: center;
+    min-height: 0;
+  }
+
+  .atelier-nor-edit__eyebrow {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(0.6875rem, 1vw, 0.75rem);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 72%);
+  }
+
+  .atelier-nor-edit__heading {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+    font-weight: 500;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+
+  .atelier-nor-edit__subheading {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.125rem, 2.2vw, 1.5rem);
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: rgb(255 255 255 / 88%);
+  }
+
+  .atelier-nor-edit__description {
+    margin: 0;
+    max-width: 30rem;
+    font-family: var(--font-body--family);
+    font-size: clamp(0.9375rem, 1.35vw, 1.0625rem);
+    line-height: 1.65;
+    color: rgb(255 255 255 / 58%);
+  }
+
+  .atelier-nor-edit__description p {
+    margin: 0;
+  }
+
+  .atelier-nor-edit__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: fit-content;
+    margin-top: 0.35rem;
+    color: rgb(255 255 255);
+    text-decoration: none;
+    font-family: var(--font-body--family);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-nor-edit__cta-label {
+    position: relative;
+    padding-block-end: 0.15rem;
+  }
+
+  .atelier-nor-edit__cta-label::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    height: 1px;
+    background: rgb(255 255 255 / 55%);
+    transform: scaleX(0.35);
+    transform-origin: left center;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-nor-edit__cta:hover,
+  .atelier-nor-edit__cta:focus-visible {
+    opacity: 0.88;
+  }
+
+  .atelier-nor-edit__cta:hover .atelier-nor-edit__cta-label::after,
+  .atelier-nor-edit__cta:focus-visible .atelier-nor-edit__cta-label::after {
+    transform: scaleX(1);
+  }
+
+  .atelier-nor-edit__cta-arrow {
+    display: inline-flex;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-nor-edit__cta:hover .atelier-nor-edit__cta-arrow,
+  .atelier-nor-edit__cta:focus-visible .atelier-nor-edit__cta-arrow {
+    transform: translateX(3px);
+  }
+
+  .atelier-nor-edit__marquees {
+    container-type: inline-size;
+    container-name: nor-edit-marquees;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(8px, 1.2cqi, var(--nor-edit-gap, 12px));
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .atelier-nor-edit__marquee-row {
+    flex: 1 1 0;
+    overflow: hidden;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+
+  .atelier-nor-edit__marquee-row--stagger {
+    margin-inline-start: clamp(1.75rem, 7cqi, 4.25rem);
+  }
+
+  .atelier-nor-edit__marquee-viewport {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+  }
+
+  .atelier-nor-edit__marquee-track {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    will-change: transform;
+    animation: atelier-nor-edit-marquee-rtl var(--nor-edit-marquee-duration, 38s) linear infinite;
+  }
+
+  .atelier-nor-edit__marquee-row[data-direction='ltr'] .atelier-nor-edit__marquee-track {
+    animation-name: atelier-nor-edit-marquee-ltr;
+  }
+
+  .atelier-nor-edit__marquee-row:hover .atelier-nor-edit__marquee-track {
+    animation-play-state: paused;
+  }
+
+  .atelier-nor-edit__marquee-group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: stretch;
+    height: 100%;
+    gap: var(--nor-edit-gap, 12px);
+    padding-inline-end: var(--nor-edit-gap, 12px);
+  }
+
+  .atelier-nor-edit__marquee-item {
+    flex: 0 0 auto;
+    height: 100%;
+    width: auto;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: rgb(255 255 255 / 4%);
+  }
+
+  .atelier-nor-edit__marquee-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transform: scale(1);
+    transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-nor-edit__marquee-row:hover .atelier-nor-edit__marquee-item:hover .atelier-nor-edit__marquee-image {
+    transform: scale(1.05);
+  }
+
+  .atelier-nor-edit__marquee-placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgb(255 255 255 / 6%);
+  }
+
+  .atelier-nor-edit__marquee-placeholder svg,
+  .atelier-nor-edit__marquee-placeholder-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  @keyframes atelier-nor-edit-marquee-rtl {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  @keyframes atelier-nor-edit-marquee-ltr {
+    from {
+      transform: translate3d(-50%, 0, 0);
+    }
+
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .shopify-section:has(.atelier-nor-edit) {
+      height: auto;
+      max-height: none;
+    }
+
+    .shopify-section:not(.header-section) .atelier-nor-edit.section {
+      height: auto;
+    }
+
+    .atelier-nor-edit__inner {
+      height: auto;
+    }
+
+    .atelier-nor-edit__layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: clamp(1.75rem, 5vw, 2.5rem);
+      height: auto;
+      max-height: none;
+      margin-block: clamp(2.75rem, 10vh, 5rem);
+      padding-block: clamp(2.5rem, 7vw, 3.5rem);
+      padding-inline: clamp(1.25rem, 4vw, 1.75rem);
+    }
+
+    .atelier-nor-edit__copy {
+      max-width: none;
+      padding-inline-end: 0;
+    }
+
+    .atelier-nor-edit__marquees {
+      min-height: auto;
+      width: 100%;
+    }
+
+    .atelier-nor-edit__marquee-row {
+      flex: 0 0 auto;
+      height: clamp(10.5rem, 42vw, 14rem);
+    }
+
+    .atelier-nor-edit__marquee-row--stagger {
+      margin-inline-start: clamp(1rem, 8vw, 2.5rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-nor-edit__marquee-track {
+      animation: none;
+      transform: none;
+      width: 100%;
+    }
+
+    .atelier-nor-edit__marquee-group[aria-hidden='true'] {
+      display: none;
+    }
+
+    .atelier-nor-edit__marquee-viewport {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .atelier-nor-edit__marquee-viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    .atelier-nor-edit__marquee-image,
+    .atelier-nor-edit__cta,
+    .atelier-nor-edit__cta-arrow,
+    .atelier-nor-edit__cta-label::after {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "THE NØR EDIT",
+  "tag": "section",
+  "class": "section-wrapper",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "ATELIER NØR — EDITORIAL 001"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "THE NØR EDIT"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Supporting headline",
+      "default": "A world beyond the ordinary."
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Discover the details, silhouettes and inspirations that define our perspective on modern dressing. A curated expression of individuality, confidence and timeless design.</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "EXPLORE THE EDIT"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Marquee"
+    },
+    {
+      "type": "range",
+      "id": "row_1_duration",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "s",
+      "label": "Row 1 speed (left to right)",
+      "default": 38
+    },
+    {
+      "type": "range",
+      "id": "row_2_duration",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "s",
+      "label": "Row 2 speed (right to left)",
+      "default": 46
+    },
+    {
+      "type": "range",
+      "id": "marquee_gap",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Image gap",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#080808"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "marquee_image",
+      "name": "Marquee image",
+      "settings": [
+        {
+          "type": "select",
+          "id": "row",
+          "label": "Row",
+          "options": [
+            { "value": "1", "label": "Row 1 (left to right)" },
+            { "value": "2", "label": "Row 2 (right to left)" }
+          ],
+          "default": "1"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Image alt text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THE NØR EDIT",
+      "blocks": [
+        { "type": "marquee_image", "settings": { "row": "1" } },
+        { "type": "marquee_image", "settings": { "row": "1" } },
+        { "type": "marquee_image", "settings": { "row": "1" } },
+        { "type": "marquee_image", "settings": { "row": "2" } },
+        { "type": "marquee_image", "settings": { "row": "2" } },
+        { "type": "marquee_image", "settings": { "row": "2" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,349 @@
+{% comment %}
+  Interactive editorial split panels. Default 50/50, hover expands the active panel.
+  @example
+  Place immediately after THE NØR EDIT on the homepage.
+{% endcomment %}
+
+{%- liquid
+  assign left_url = section.settings.left_link
+  if left_url == blank
+    assign left_url = collections['outerwear'].url | default: routes.all_products_collection_url
+  endif
+
+  assign right_url = section.settings.right_link
+  if right_url == blank
+    assign right_url = collections['outerwear'].url | default: routes.all_products_collection_url
+  endif
+-%}
+
+<div class="section-background"></div>
+
+<div
+  class="section section--full-width atelier-split"
+  style="--split-ease: cubic-bezier(0.22, 1, 0.36, 1); --split-duration: {{ section.settings.transition_ms }}ms;"
+>
+  <div class="atelier-split__stage">
+    <a class="atelier-split__panel atelier-split__panel--left" href="{{ left_url }}">
+      {%- if section.settings.left_image != blank -%}
+        {{
+          section.settings.left_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '800, 1200, 1600, 2000, 2400',
+            sizes: '(min-width: 990px) 66vw, 100vw',
+            loading: 'lazy',
+            class: 'atelier-split__image',
+            alt: section.settings.left_image.alt | default: section.settings.left_title
+        }}
+      {%- else -%}
+        <img
+          class="atelier-split__image"
+          src="{{ 'atelier-split-ascent.jpg' | asset_url }}"
+          alt="{{ section.settings.left_title | escape }}"
+          width="1200"
+          height="1600"
+          loading="lazy"
+        >
+      {%- endif -%}
+      <span class="atelier-split__shade" aria-hidden="true"></span>
+      <span class="atelier-split__copy">
+        {%- if section.settings.left_eyebrow != blank -%}
+          <span class="atelier-split__eyebrow">{{ section.settings.left_eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.left_title != blank -%}
+          <span class="atelier-split__title">{{ section.settings.left_title | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.left_description != blank -%}
+          <span class="atelier-split__description">{{ section.settings.left_description | escape }}</span>
+        {%- endif -%}
+      </span>
+    </a>
+
+    <a class="atelier-split__panel atelier-split__panel--right" href="{{ right_url }}">
+      {%- if section.settings.right_image != blank -%}
+        {{
+          section.settings.right_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '800, 1200, 1600, 2000, 2400',
+            sizes: '(min-width: 990px) 66vw, 100vw',
+            loading: 'lazy',
+            class: 'atelier-split__image',
+            alt: section.settings.right_image.alt | default: section.settings.right_title
+        }}
+      {%- else -%}
+        <img
+          class="atelier-split__image"
+          src="{{ 'atelier-split-rain.jpg' | asset_url }}"
+          alt="{{ section.settings.right_title | escape }}"
+          width="1200"
+          height="1600"
+          loading="lazy"
+        >
+      {%- endif -%}
+      <span class="atelier-split__shade" aria-hidden="true"></span>
+      <span class="atelier-split__copy">
+        {%- if section.settings.right_eyebrow != blank -%}
+          <span class="atelier-split__eyebrow">{{ section.settings.right_eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.right_title != blank -%}
+          <span class="atelier-split__title">{{ section.settings.right_title | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.right_description != blank -%}
+          <span class="atelier-split__description">{{ section.settings.right_description | escape }}</span>
+        {%- endif -%}
+      </span>
+    </a>
+  </div>
+</div>
+
+{% stylesheet %}
+  .shopify-section:has(.atelier-split) {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .atelier-split {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .atelier-split__stage {
+    display: flex;
+    width: 100%;
+    height: 86svh;
+    min-height: 36rem;
+    max-height: 56rem;
+  }
+
+  .atelier-split__panel {
+    position: relative;
+    display: block;
+    flex: 50 1 0;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    color: rgb(255 255 255);
+    text-decoration: none;
+    transition: flex-grow var(--split-duration, 800ms) var(--split-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .atelier-split__stage:has(.atelier-split__panel:is(:hover, :focus-visible)) .atelier-split__panel:not(:hover):not(:focus-visible) {
+    flex-grow: 34;
+  }
+
+  .atelier-split__panel:is(:hover, :focus-visible) {
+    flex-grow: 66;
+    z-index: 1;
+  }
+
+  .atelier-split__panel:focus-visible {
+    outline: 2px solid rgb(255 255 255);
+    outline-offset: -6px;
+  }
+
+  .atelier-split__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--split-duration, 800ms) var(--split-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .atelier-split__panel--left .atelier-split__image {
+    object-position: 32% center;
+  }
+
+  .atelier-split__panel--right .atelier-split__image {
+    object-position: center 28%;
+  }
+
+  .atelier-split__panel:is(:hover, :focus-visible) .atelier-split__image {
+    transform: scale(1.035);
+  }
+
+  .atelier-split__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgb(0 0 0 / 0.05) 35%,
+      rgb(0 0 0 / 0.28) 68%,
+      rgb(0 0 0 / 0.62) 100%
+    );
+    pointer-events: none;
+  }
+
+  .atelier-split__copy {
+    position: absolute;
+    inset-inline: clamp(1.25rem, 2.4vw, 2.25rem);
+    inset-block-end: clamp(1.5rem, 3.5vh, 2.75rem);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+    max-width: 28rem;
+    z-index: 1;
+  }
+
+  .atelier-split__eyebrow {
+    font-family: var(--font-body--family);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .atelier-split__title {
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.75rem, 2.6vw, 2.65rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .atelier-split__description {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    font-family: var(--font-body--family);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 86%);
+    transition:
+      opacity 520ms var(--split-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      transform 520ms var(--split-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      max-height 520ms var(--split-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .atelier-split__panel:is(:hover, :focus-visible) .atelier-split__description {
+    max-height: 6rem;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media screen and (max-width: 749px) {
+    .atelier-split__stage {
+      flex-direction: column;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+    }
+
+    .atelier-split__panel,
+    .atelier-split__stage:has(.atelier-split__panel:is(:hover, :focus-visible)) .atelier-split__panel:not(:hover):not(:focus-visible),
+    .atelier-split__panel:is(:hover, :focus-visible) {
+      flex: none;
+      width: 100%;
+      height: 78vw;
+      min-height: 22rem;
+    }
+
+    .atelier-split__description,
+    .atelier-split__panel:is(:hover, :focus-visible) .atelier-split__description {
+      max-height: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-split__panel,
+    .atelier-split__image,
+    .atelier-split__description {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Editorial split",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Left panel"
+    },
+    {
+      "type": "image_picker",
+      "id": "left_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "left_eyebrow",
+      "label": "Eyebrow",
+      "default": "OUTERWEAR"
+    },
+    {
+      "type": "text",
+      "id": "left_title",
+      "label": "Title",
+      "default": "Layered for the Ascent"
+    },
+    {
+      "type": "textarea",
+      "id": "left_description",
+      "label": "Description",
+      "default": "Quilted vests and clean shirting, shaped for early starts and long days between the city and the trail."
+    },
+    {
+      "type": "url",
+      "id": "left_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Right panel"
+    },
+    {
+      "type": "image_picker",
+      "id": "right_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "right_eyebrow",
+      "label": "Eyebrow",
+      "default": "RAIN EDIT"
+    },
+    {
+      "type": "text",
+      "id": "right_title",
+      "label": "Title",
+      "default": "Shells for the Weather"
+    },
+    {
+      "type": "textarea",
+      "id": "right_description",
+      "label": "Description",
+      "default": "Waterproof shells cut for hours in the rain, not only the short walk from the door to the street."
+    },
+    {
+      "type": "url",
+      "id": "right_link",
+      "label": "Link"
+    },
+    {
+      "type": "range",
+      "id": "transition_ms",
+      "min": 500,
+      "max": 1100,
+      "step": 100,
+      "unit": "ms",
+      "label": "Transition speed",
+      "default": 800
+    }
+  ],
+  "presets": [
+    {
+      "name": "Editorial split"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,443 @@
+{% comment %}
+  Full-screen interactive collection showcase with centre-expand image transition.
+  @example
+  Place after the editorial marquee on the homepage with collection blocks configured.
+{% endcomment %}
+
+{%- liquid
+  assign first_block = section.blocks.first
+  assign first_collection = first_block.settings.collection
+  assign overlay_opacity = section.settings.overlay_opacity | divided_by: 100.0
+  assign initial_image = blank
+  assign initial_url = routes.collections_url
+
+  if first_collection != blank
+    assign initial_url = first_collection.url
+    assign initial_image = first_collection.image
+    if initial_image == blank and first_collection.products_count > 0
+      assign initial_image = first_collection.products.first.featured_image
+    endif
+  endif
+-%}
+
+<script
+  src="{{ 'atelier-categories-showcase.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<div class="section-background"></div>
+
+<atelier-categories-showcase
+  class="section section--full-width atelier-categories-showcase"
+  data-section-id="{{ section.id }}"
+  data-active-index="0"
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-autoplay-interval="{{ section.settings.autoplay_interval }}"
+  data-transition-duration="{{ section.settings.transition_duration }}"
+  style="
+    --categories-overlay: {{ overlay_opacity }};
+    --categories-height: {% if section.settings.full_screen %}100svh{% else %}{{ section.settings.custom_height }}svh{% endif %};
+    --categories-transition: {{ section.settings.transition_duration }}ms;
+  "
+>
+  <div class="atelier-categories-showcase__viewport">
+    <div class="atelier-categories-showcase__media" aria-hidden="true">
+      <div class="atelier-categories-showcase__layer atelier-categories-showcase__layer--base">
+        {%- if initial_image != blank -%}
+          <img
+            ref="baseImage"
+            class="atelier-categories-showcase__image"
+            src="{{ initial_image | image_url: width: 3840 }}"
+            srcset="
+              {{ initial_image | image_url: width: 750 }} 750w,
+              {{ initial_image | image_url: width: 1100 }} 1100w,
+              {{ initial_image | image_url: width: 1500 }} 1500w,
+              {{ initial_image | image_url: width: 2000 }} 2000w,
+              {{ initial_image | image_url: width: 2560 }} 2560w,
+              {{ initial_image | image_url: width: 3200 }} 3200w,
+              {{ initial_image | image_url: width: 3840 }} 3840w
+            "
+            sizes="100vw"
+            loading="eager"
+            fetchpriority="high"
+            alt="{{ first_collection.title | escape }}"
+            width="{{ initial_image.width }}"
+            height="{{ initial_image.height }}"
+          >
+        {%- else -%}
+          <div class="atelier-categories-showcase__placeholder"></div>
+        {%- endif -%}
+      </div>
+
+      <div ref="revealLayer" class="atelier-categories-showcase__layer atelier-categories-showcase__layer--reveal" hidden>
+        <img
+          ref="revealImage"
+          class="atelier-categories-showcase__image atelier-categories-showcase__image--reveal"
+          alt=""
+          width="1920"
+          height="1080"
+        >
+      </div>
+    </div>
+
+    <div class="atelier-categories-showcase__gradient"></div>
+
+    <p class="atelier-categories-showcase__label">
+      {{ section.settings.label | default: 'CATEGORIES' | escape }}
+    </p>
+
+    <div class="atelier-categories-showcase__content">
+      <div
+        ref="categoryList"
+        class="atelier-categories-showcase__list"
+        role="list"
+        aria-label="{{ section.settings.label | default: 'CATEGORIES' | escape }}"
+      >
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign collection = block.settings.collection
+            if collection == blank
+              continue
+            endif
+
+            assign collection_image = collection.image
+            if collection_image == blank and collection.products_count > 0
+              assign collection_image = collection.products.first.featured_image
+            endif
+
+            assign image_url = ''
+            if collection_image != blank
+              assign image_url = collection_image | image_url: width: 3840
+            endif
+          -%}
+
+          <button
+            ref="items[]"
+            type="button"
+            class="atelier-categories-showcase__item{% if forloop.first %} is-active{% endif %}"
+            role="listitem"
+            aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+            tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+            data-collection-url="{{ collection.url }}"
+            data-image-url="{{ image_url }}"
+            {{ block.shopify_attributes }}
+          >
+            {{ collection.title | escape }}
+          </button>
+        {%- endfor -%}
+      </div>
+
+      <a
+        ref="cta"
+        class="atelier-categories-showcase__cta"
+        href="{{ initial_url }}"
+      >
+        <span class="atelier-categories-showcase__cta-label">
+          {{ section.settings.cta_label | default: 'Shop Now' | escape }}
+        </span>
+        <span class="atelier-categories-showcase__cta-arrow" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/>
+          </svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</atelier-categories-showcase>
+
+{% stylesheet %}
+  .shopify-section:has(.atelier-categories-showcase) {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .atelier-categories-showcase {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .atelier-categories-showcase__viewport {
+    position: relative;
+    min-height: var(--categories-height, 100svh);
+    color: rgb(255 255 255);
+    overflow: hidden;
+  }
+
+  .atelier-categories-showcase__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .atelier-categories-showcase__layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  .atelier-categories-showcase__layer--base {
+    z-index: 0;
+  }
+
+  .atelier-categories-showcase__layer--reveal {
+    z-index: 1;
+    clip-path: inset(44% 44% 44% 44%);
+  }
+
+  .atelier-categories-showcase__layer--reveal.is-revealing {
+    clip-path: inset(0);
+    transition: clip-path var(--categories-transition, 900ms) cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-categories-showcase__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  .atelier-categories-showcase__image--reveal {
+    transform: scale(1.08);
+  }
+
+  .atelier-categories-showcase__layer--reveal.is-revealing .atelier-categories-showcase__image--reveal {
+    transition: transform var(--categories-transition, 900ms) cubic-bezier(0.22, 1, 0.36, 1);
+    transform: scale(1);
+  }
+
+  .atelier-categories-showcase__placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgb(23 23 23);
+  }
+
+  .atelier-categories-showcase__gradient {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgb(0 0 0 / calc(var(--categories-overlay, 0.35) * 0.45)) 0%,
+      rgb(0 0 0 / calc(var(--categories-overlay, 0.45) * 0.65)) 55%,
+      rgb(0 0 0 / var(--categories-overlay, 0.55)) 100%
+    );
+  }
+
+  .atelier-categories-showcase__label {
+    position: absolute;
+    z-index: 3;
+    inset-block-start: clamp(1.25rem, 2.2vw, 2.25rem);
+    inset-inline-start: clamp(1.25rem, 2.2vw, 2.25rem);
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(0.6875rem, 1.1vw, 0.8125rem);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .atelier-categories-showcase__content {
+    position: absolute;
+    z-index: 3;
+    inset-inline: clamp(1.25rem, 2.2vw, 2.25rem);
+    inset-block-end: clamp(1.75rem, 4vh, 3rem);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+
+  .atelier-categories-showcase__list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(0.35rem, 1.2vh, 0.65rem);
+    min-width: 0;
+  }
+
+  .atelier-categories-showcase__item {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: rgb(255 255 255 / 42%);
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.75rem, 4.8vw, 3.75rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-align: start;
+    cursor: pointer;
+    transition:
+      color 320ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 320ms ease;
+  }
+
+  .atelier-categories-showcase__item.is-active,
+  .atelier-categories-showcase__item[aria-pressed='true'] {
+    color: rgb(255 255 255);
+  }
+
+  .atelier-categories-showcase__item:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 85%);
+    outline-offset: 4px;
+  }
+
+  .atelier-categories-showcase__cta {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2.25rem;
+    min-width: min(100%, 11.5rem);
+    padding: 0.9rem 1rem 0.9rem 1.15rem;
+    background: rgb(255 255 255);
+    color: rgb(23 23 23);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    transition:
+      transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 320ms ease;
+  }
+
+  .atelier-categories-showcase__cta:hover,
+  .atelier-categories-showcase__cta:focus-visible {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  .atelier-categories-showcase__cta-arrow {
+    display: inline-flex;
+  }
+
+  @media screen and (max-width: 749px) {
+    .atelier-categories-showcase__content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .atelier-categories-showcase__cta {
+      align-self: flex-start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-categories-showcase__layer--reveal.is-revealing,
+    .atelier-categories-showcase__layer--reveal.is-revealing .atelier-categories-showcase__image--reveal,
+    .atelier-categories-showcase__item,
+    .atelier-categories-showcase__cta {
+      transition: none;
+    }
+
+    .atelier-categories-showcase__layer--reveal.is-revealing {
+      clip-path: inset(0);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Categories showcase",
+  "tag": "section",
+  "class": "section-wrapper",
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Eyebrow label",
+      "default": "CATEGORIES"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Shop Now"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_screen",
+      "label": "Full screen height",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "custom_height",
+      "min": 70,
+      "max": 100,
+      "step": 5,
+      "unit": "svh",
+      "label": "Custom height",
+      "default": 90,
+      "visible_if": "{{ section.settings.full_screen == false }}"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay intensity",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "transition_duration",
+      "min": 500,
+      "max": 1400,
+      "step": 100,
+      "unit": "ms",
+      "label": "Transition duration",
+      "default": 900
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Automatic category rotation",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_interval",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Rotation interval",
+      "default": 5,
+      "visible_if": "{{ section.settings.autoplay }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Categories showcase",
+      "blocks": [
+        { "type": "collection" },
+        { "type": "collection" },
+        { "type": "collection" },
+        { "type": "collection" },
+        { "type": "collection" }
+      ]
+    }
+  ]
+}
+{% endschema %}

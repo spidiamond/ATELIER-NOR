@@ -1,0 +1,617 @@
+{% comment %}
+  Global editorial footer for ATELIER NØR.
+  Replaces the default Horizon footer group content.
+  @example
+  Assigned as the only section in footer-group.json.
+{% endcomment %}
+
+{%- liquid
+  assign newsletter_text = section.settings.newsletter_text
+  assign story_page = pages['our-story'] | default: pages['about']
+  assign faq_page = pages['faq'] | default: pages['faqs']
+-%}
+
+<div
+  class="section-background"
+  style="background-color: {{ section.settings.background_color }};"
+></div>
+
+<div
+  class="section section--full-width atelier-footer"
+  style="--atelier-footer-bg: {{ section.settings.background_color }};"
+>
+  <div class="atelier-footer__top">
+    <a class="atelier-footer__wordmark" href="{{ routes.root_url }}">{{ shop.name | escape }}</a>
+    <nav class="atelier-footer__socials" aria-label="Social">
+      {%- liquid
+        assign social_nav = 'Instagram|instagram_url|https://instagram.com,Pinterest|pinterest_url|https://pinterest.com,YouTube|youtube_url|https://youtube.com,Threads|threads_url|https://www.threads.net,X|x_url|https://x.com' | split: ','
+      -%}
+      {%- for item in social_nav -%}
+        {%- liquid
+          assign parts = item | split: '|'
+          assign social_name = parts[0]
+          assign social_key = parts[1]
+          assign social_url = section.settings[social_key] | default: parts[2]
+        -%}
+        <a
+          class="atelier-footer__social"
+          href="{{ social_url }}"
+          target="_blank"
+          rel="noopener"
+        >
+          {% render 'atelier-flip-label', text: social_name %}
+        </a>
+      {%- endfor -%}
+    </nav>
+  </div>
+
+  <div class="atelier-footer__body">
+    <div class="atelier-footer__newsletter">
+      {%- if newsletter_text != blank -%}
+        <p class="atelier-footer__newsletter-text">{{ newsletter_text | escape }}</p>
+      {%- endif -%}
+
+      {%- form 'customer', class: 'atelier-footer__form' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <div class="atelier-footer__field">
+          <label class="visually-hidden" for="AtelierFooterEmail-{{ section.id }}">Email</label>
+          <input
+            id="AtelierFooterEmail-{{ section.id }}"
+            type="email"
+            name="contact[email]"
+            autocomplete="email"
+            autocorrect="off"
+            autocapitalize="off"
+            placeholder="Your email"
+            required
+            {% if form.errors %}
+              aria-invalid="true"
+              aria-describedby="AtelierFooterError-{{ section.id }}"
+            {% elsif form.posted_successfully? %}
+              aria-describedby="AtelierFooterSuccess-{{ section.id }}"
+            {% endif %}
+          >
+          <button type="submit" aria-label="Subscribe">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="6" width="17" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/>
+              <path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+            </svg>
+          </button>
+        </div>
+        {%- if form.errors -%}
+          <p id="AtelierFooterError-{{ section.id }}" class="atelier-footer__note atelier-footer__note--error" role="alert">
+            {{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}
+          </p>
+        {%- endif -%}
+        {%- if form.posted_successfully? -%}
+          <p id="AtelierFooterSuccess-{{ section.id }}" class="atelier-footer__note" role="status">
+            {{ 'blocks.email_signup.success' | t }}
+          </p>
+        {%- endif -%}
+      {%- endform -%}
+
+      <p class="atelier-footer__consent">
+        By subscribing, you agree to hear from {{ shop.name | escape }}
+        {%- if shop.privacy_policy != blank -%}
+          and to the <a href="{{ shop.privacy_policy.url }}">privacy policy</a>.
+        {%- else -%}
+          .
+        {%- endif -%}
+      </p>
+    </div>
+
+    <div class="atelier-footer__columns">
+      <div class="atelier-footer__group">
+        <p class="atelier-footer__heading">Shop</p>
+        <ul class="atelier-footer__links" role="list">
+          {%- assign shop_handles = 'dresses,tops,bottoms,outerwear,knitwear-essentials' | split: ',' -%}
+          {%- for handle in shop_handles -%}
+            {%- assign collection = collections[handle] -%}
+            {%- if collection != blank and collection.url != blank -%}
+              <li><a href="{{ collection.url }}">{{ collection.title | escape }}</a></li>
+            {%- endif -%}
+          {%- endfor -%}
+          <li><a href="{{ routes.collections_url }}">All collections</a></li>
+        </ul>
+      </div>
+
+      <div class="atelier-footer__group">
+        <p class="atelier-footer__heading">Company</p>
+        <ul class="atelier-footer__links" role="list">
+          {%- if section.settings.story_link != blank -%}
+            <li><a href="{{ section.settings.story_link }}">Our story</a></li>
+          {%- elsif story_page != blank -%}
+            <li><a href="{{ story_page.url }}">Our story</a></li>
+          {%- endif -%}
+          {%- if pages.contact != blank -%}
+            <li><a href="{{ pages.contact.url }}">Contact</a></li>
+          {%- endif -%}
+          {%- if section.settings.faq_link != blank -%}
+            <li><a href="{{ section.settings.faq_link }}">FAQs</a></li>
+          {%- elsif faq_page != blank -%}
+            <li><a href="{{ faq_page.url }}">FAQs</a></li>
+          {%- endif -%}
+        </ul>
+      </div>
+
+      <div class="atelier-footer__group">
+        <p class="atelier-footer__heading">Legal</p>
+        <ul class="atelier-footer__links" role="list">
+          {%- if shop.terms_of_service != blank -%}
+            <li><a href="{{ shop.terms_of_service.url }}">Terms of service</a></li>
+          {%- elsif section.settings.terms_link != blank -%}
+            <li><a href="{{ section.settings.terms_link }}">Terms of service</a></li>
+          {%- endif -%}
+          {%- if shop.privacy_policy != blank -%}
+            <li><a href="{{ shop.privacy_policy.url }}">Privacy policy</a></li>
+          {%- endif -%}
+          {%- if shop.refund_policy != blank -%}
+            <li><a href="{{ shop.refund_policy.url }}">Refund policy</a></li>
+          {%- endif -%}
+          {%- if section.settings.shipping_link != blank -%}
+            <li><a href="{{ section.settings.shipping_link }}">Shipping &amp; returns</a></li>
+          {%- elsif shop.shipping_policy != blank -%}
+            <li><a href="{{ shop.shipping_policy.url }}">Shipping &amp; returns</a></li>
+          {%- endif -%}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="atelier-footer__bar">
+    <div class="atelier-footer__bar-start">
+      {%- if shop.enabled_payment_types.size > 0 -%}
+        <ul class="atelier-footer__payments" role="list" aria-label="{{ 'blocks.payment_methods' | t }}">
+          {%- for type in shop.enabled_payment_types -%}
+            <li>{{ type | payment_type_svg_tag }}</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+      <ul class="atelier-footer__policies" role="list">
+        {%- if shop.privacy_policy != blank -%}
+          <li><a href="{{ shop.privacy_policy.url }}">Privacy policy</a></li>
+        {%- endif -%}
+        {%- if shop.terms_of_service != blank -%}
+          <li><a href="{{ shop.terms_of_service.url }}">Terms of service</a></li>
+        {%- elsif section.settings.terms_link != blank -%}
+          <li><a href="{{ section.settings.terms_link }}">Terms of service</a></li>
+        {%- endif -%}
+        {%- if shop.refund_policy != blank -%}
+          <li><a href="{{ shop.refund_policy.url }}">Refund policy</a></li>
+        {%- endif -%}
+      </ul>
+    </div>
+
+    <div class="atelier-footer__bar-end">
+      <button
+        type="button"
+        class="atelier-footer__locale"
+        on:click="#atelier-region-drawer/open"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="atelier-region-drawer"
+      >
+        {% render 'atelier-dot-grid', identifier: 'footer-locale', variant: 'pair' %}
+        <span>
+          {{- localization.language.endonym_name | capitalize }} / {{ localization.country.name }} ({{ localization.country.currency.symbol -}}
+          {{- localization.country.currency.iso_code }})
+        </span>
+      </button>
+      <p class="atelier-footer__legal">
+        &copy; {{ 'now' | date: '%Y' }}
+        <a href="{{ routes.root_url }}">{{ shop.name | escape }}</a>.
+        {{ powered_by_link }}
+      </p>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .shopify-section:has(.atelier-footer) {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .shopify-section:not(.header-section) .atelier-footer.section {
+    display: flex;
+    flex-direction: column;
+    background: var(--atelier-footer-bg, #000);
+    color: #fff;
+  }
+
+  .atelier-footer__top,
+  .atelier-footer__body,
+  .atelier-footer__bar {
+    padding-inline: clamp(1.5rem, 3.2vw, 2.75rem);
+  }
+
+  .atelier-footer__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    min-height: 7.5rem;
+    border-bottom: 1px solid rgb(255 255 255 / 22%);
+  }
+
+  .atelier-footer__wordmark {
+    color: #fff;
+    font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .atelier-footer__socials {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(1.35rem, 2.4vw, 2.35rem);
+    margin: 0;
+  }
+
+  .atelier-footer__social {
+    color: #fff;
+    font-size: clamp(1.15rem, 1.55vw, 1.45rem);
+    font-weight: 400;
+    letter-spacing: 0.005em;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .atelier-footer__social:hover .atelier-flip__track,
+  .atelier-footer__social:focus-visible .atelier-flip__track {
+    transform: translateY(calc(var(--atelier-flip-line, 1.25em) * -1));
+  }
+
+  .atelier-footer__social:focus-visible {
+    outline: 1px solid #fff;
+    outline-offset: 4px;
+  }
+
+  .atelier-footer__body {
+    display: grid;
+    grid-template-columns: minmax(16rem, 1.15fr) minmax(0, 1.7fr);
+    gap: clamp(2.5rem, 8vw, 8rem);
+    align-items: start;
+    padding-block: clamp(4.5rem, 9vh, 6.75rem) clamp(3.5rem, 7vh, 5rem);
+  }
+
+  .atelier-footer__newsletter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.15rem;
+    max-width: 26rem;
+  }
+
+  .atelier-footer__newsletter-text {
+    margin: 0;
+    max-width: 22rem;
+    color: #fff;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .atelier-footer__form {
+    width: min(100%, 24rem);
+  }
+
+  .atelier-footer__field {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    background: #fff;
+    color: #111;
+  }
+
+  .atelier-footer__field input {
+    flex: 1;
+    min-width: 0;
+    height: 2.7rem;
+    margin: 0;
+    padding: 0 0.9rem;
+    border: 0;
+    background: transparent;
+    color: #111;
+    font: inherit;
+    font-size: 0.92rem;
+  }
+
+  .atelier-footer__field input::placeholder {
+    color: #8a8a8a;
+  }
+
+  .atelier-footer__field input:focus {
+    outline: none;
+  }
+
+  .atelier-footer__field button {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border: 0;
+    background: #111;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .atelier-footer__field button svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .atelier-footer__field:focus-within {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .atelier-footer__consent,
+  .atelier-footer__note {
+    margin: 0;
+    max-width: 24rem;
+    color: rgb(255 255 255 / 62%);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .atelier-footer__consent a {
+    color: inherit;
+  }
+
+  .atelier-footer__note--error {
+    color: #ffb4b4;
+  }
+
+  .atelier-footer__columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 3.5rem);
+    padding-top: 0.15rem;
+  }
+
+  .atelier-footer__heading {
+    margin: 0 0 1.15rem;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .atelier-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .atelier-footer__links a {
+    color: #fff;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .atelier-footer__links a:hover,
+  .atelier-footer__links a:focus-visible {
+    opacity: 0.62;
+  }
+
+  .atelier-footer__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem 2rem;
+    padding-block: 1.35rem 1.6rem;
+  }
+
+  .atelier-footer__bar-start,
+  .atelier-footer__bar-end {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.85rem 1.15rem;
+    min-width: 0;
+  }
+
+  .atelier-footer__bar-end {
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .atelier-footer__payments,
+  .atelier-footer__policies {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.85rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .atelier-footer__payments svg {
+    display: block;
+    height: 1.35rem;
+    width: auto;
+  }
+
+  .atelier-footer__policies a,
+  .atelier-footer__legal,
+  .atelier-footer__legal a,
+  .atelier-footer__locale {
+    color: rgb(255 255 255 / 82%);
+    font-size: 0.78rem;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .atelier-footer__legal {
+    margin: 0;
+  }
+
+  .atelier-footer__locale {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+  }
+
+  .atelier-footer__locale:focus-visible,
+  .atelier-footer__policies a:focus-visible,
+  .atelier-footer__wordmark:focus-visible {
+    outline: 1px solid #fff;
+    outline-offset: 4px;
+  }
+
+  @media screen and (max-width: 989px) {
+    .atelier-footer__top {
+      align-items: flex-start;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.25rem;
+      min-height: 0;
+      padding-block: 1.75rem;
+    }
+
+    .atelier-footer__socials {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 0.85rem 1.25rem;
+    }
+
+    .atelier-footer__body {
+      grid-template-columns: 1fr;
+      gap: 2.75rem;
+      padding-block: 2.75rem 2.25rem;
+    }
+
+    .atelier-footer__columns {
+      gap: 1.75rem;
+    }
+
+    .atelier-footer__bar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .atelier-footer__bar-end {
+      margin-left: 0;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-footer__social:hover .atelier-flip__track,
+    .atelier-footer__social:focus-visible .atelier-flip__track {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ATELIER footer",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "brand_statement",
+      "label": "Brand statement",
+      "default": "Designed for the moments that become your signature. A considered approach to contemporary dressing, shaped by craft and personal expression."
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "Newsletter heading",
+      "default": "An invitation to something considered."
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_text",
+      "label": "Newsletter text",
+      "default": "Be the first to discover new collections, exclusive releases, and stories from ATELIER NØR."
+    },
+    {
+      "type": "header",
+      "content": "Optional pages"
+    },
+    {
+      "type": "url",
+      "id": "story_link",
+      "label": "Our story"
+    },
+    {
+      "type": "url",
+      "id": "faq_link",
+      "label": "FAQs"
+    },
+    {
+      "type": "url",
+      "id": "shipping_link",
+      "label": "Shipping and returns"
+    },
+    {
+      "type": "url",
+      "id": "terms_link",
+      "label": "Terms of service"
+    },
+    {
+      "type": "header",
+      "content": "Social"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram"
+    },
+    {
+      "type": "url",
+      "id": "pinterest_url",
+      "label": "Pinterest"
+    },
+    {
+      "type": "url",
+      "id": "youtube_url",
+      "label": "YouTube"
+    },
+    {
+      "type": "url",
+      "id": "threads_url",
+      "label": "Threads"
+    },
+    {
+      "type": "url",
+      "id": "x_url",
+      "label": "X"
+    },
+    {
+      "type": "url",
+      "id": "facebook_url",
+      "label": "Facebook"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#0B0B0B"
+    },
+    {
+      "type": "color",
+      "id": "bar_color",
+      "label": "Utility bar",
+      "default": "#070707"
+    }
+  ]
+}
+{% endschema %}

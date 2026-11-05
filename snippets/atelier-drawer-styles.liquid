@@ -185,7 +185,31 @@
   }
 
   .atelier-picker[data-open] .atelier-picker__panel {
-    animation: atelier-picker-in 180ms ease;
+    animation: atelier-picker-in 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .atelier-region-form__body > * {
+    animation: atelier-drawer-rise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .atelier-region-form__body > *:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .atelier-region-form__body > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  @keyframes atelier-drawer-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   .atelier-picker__list {
@@ -224,7 +248,7 @@
 
   .atelier-picker__meta {
     flex-shrink: 0;
-    color: var(--atelier-muted);
+    color: inherit;
   }
 
   .atelier-picker--language .atelier-picker__option {
@@ -259,7 +283,10 @@
   }
 
   .atelier-region-form__footer {
+    position: relative;
+    z-index: 2;
     padding: 1rem 1.35rem 1.35rem;
+    background: #fff;
   }
 
   .atelier-cart-empty {
@@ -438,6 +465,7 @@
   @media (prefers-reduced-motion: reduce) {
     .atelier-panel,
     .search-modal__content,
+    .atelier-region-form__body > *,
     .atelier-picker__panel,
     .atelier-picker__chevron,
     .atelier-picker__option,

@@ -1,0 +1,147 @@
+{% doc %}
+  Renders one horizontal infinite marquee row for THE NØR EDIT.
+  @param {object} section - Parent section
+  @param {string} row - Row identifier (`1` or `2`)
+  @param {number} duration - Animation duration in seconds
+  @param {string} [direction] - `ltr` moves imagery left to right; `rtl` moves imagery right to left
+  @example
+  {% render 'atelier-nor-edit-marquee-row', section: section, row: '1', duration: 38, direction: 'ltr' %}
+{% enddoc %}
+
+{%- liquid
+  assign row_key = row | append: ''
+  assign anim_direction = direction | default: 'rtl'
+  assign image_count = 0
+
+  for block in section.blocks
+    if block.settings.row == row_key
+      assign image_count = image_count | plus: 1
+    endif
+  endfor
+
+  assign fallback_dresses = collections['dresses'].products
+  assign fallback_tops = collections['tops'].products
+  assign fallback_bottoms = collections['bottoms'].products
+  assign fallback_outerwear = collections['outerwear'].products
+  assign fallback_knitwear = collections['knitwear-essentials'].products
+-%}
+
+{%- capture marquee_items -%}
+  {%- if image_count > 0 -%}
+    {%- assign slot = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- if block.settings.row != row_key -%}
+        {%- continue -%}
+      {%- endif -%}
+      {%- liquid
+        assign slot = slot | plus: 1
+        assign alt_text = block.settings.alt | default: block.settings.image.alt | default: ''
+        assign frame_image = block.settings.image
+        if frame_image == blank
+          assign fallback_index = slot | minus: 1
+          if row_key == '2'
+            assign fallback_index = fallback_index | plus: 3
+          endif
+          case fallback_index
+            when 0
+              assign frame_image = fallback_dresses.first.featured_image
+            when 1
+              assign frame_image = fallback_tops.first.featured_image
+            when 2
+              assign frame_image = fallback_bottoms.first.featured_image
+            when 3
+              assign frame_image = fallback_outerwear.first.featured_image
+            when 4
+              assign frame_image = fallback_knitwear.first.featured_image
+            else
+              if fallback_dresses.size > 1
+                assign frame_image = fallback_dresses[1].featured_image
+              else
+                assign frame_image = fallback_tops.first.featured_image
+              endif
+          endcase
+        endif
+      -%}
+      <div class="atelier-nor-edit__marquee-item" {{ block.shopify_attributes }}>
+        {%- if frame_image != blank -%}
+          {{
+            frame_image
+            | image_url: width: 1400
+            | image_tag:
+              widths: '600, 800, 1000, 1200, 1400',
+              sizes: '(min-width: 990px) 18vw, 46vw',
+              loading: 'lazy',
+              class: 'atelier-nor-edit__marquee-image',
+              alt: alt_text
+          }}
+        {%- else -%}
+          <div class="atelier-nor-edit__marquee-placeholder" aria-hidden="true">
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'atelier-nor-edit__marquee-placeholder-svg' }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  {%- else -%}
+    {%- for i in (1..3) -%}
+      {%- liquid
+        assign fallback_index = forloop.index0
+        if row_key == '2'
+          assign fallback_index = fallback_index | plus: 3
+        endif
+        case fallback_index
+          when 0
+            assign frame_image = fallback_dresses.first.featured_image
+          when 1
+            assign frame_image = fallback_tops.first.featured_image
+          when 2
+            assign frame_image = fallback_bottoms.first.featured_image
+          when 3
+            assign frame_image = fallback_outerwear.first.featured_image
+          when 4
+            assign frame_image = fallback_knitwear.first.featured_image
+          else
+            if fallback_dresses.size > 1
+              assign frame_image = fallback_dresses[1].featured_image
+            else
+              assign frame_image = fallback_outerwear.first.featured_image
+            endif
+        endcase
+      -%}
+      <div class="atelier-nor-edit__marquee-item">
+        {%- if frame_image != blank -%}
+          {{
+            frame_image
+            | image_url: width: 1400
+            | image_tag:
+              widths: '600, 800, 1000, 1200, 1400',
+              sizes: '(min-width: 990px) 18vw, 46vw',
+              loading: 'lazy',
+              class: 'atelier-nor-edit__marquee-image',
+              alt: ''
+          }}
+        {%- else -%}
+          <div class="atelier-nor-edit__marquee-placeholder" aria-hidden="true">
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'atelier-nor-edit__marquee-placeholder-svg' }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+<div
+  class="atelier-nor-edit__marquee-row{% if row_key == '2' %} atelier-nor-edit__marquee-row--stagger{% endif %}"
+  data-direction="{{ anim_direction }}"
+  style="--nor-edit-marquee-duration: {{ duration }}s;"
+>
+  <div class="atelier-nor-edit__marquee-viewport">
+    <div class="atelier-nor-edit__marquee-track">
+      <div class="atelier-nor-edit__marquee-group">
+        {{ marquee_items }}
+      </div>
+      <div class="atelier-nor-edit__marquee-group" aria-hidden="true">
+        {{ marquee_items }}
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,20 +1,26 @@
 {%- doc -%}
-  Small 2 by 3 dot mark used beside the logo and region control.
+  Signature dot mark. `square` is four corner dots. `pair` is two vertical dots.
 
   @param {string} [identifier] - Unique suffix so repeated marks do not share an id
+  @param {string} [variant] - `square` or `pair`
   @param {string} [label] - Accessible name when the mark conveys meaning on its own
 
   @example
-  {% render 'atelier-dot-grid', identifier: 'logo' %}
+  {% render 'atelier-dot-grid', identifier: 'logo', variant: 'square' %}
 {%- enddoc -%}
 
 {%- liquid
   assign identifier = identifier | default: 'default'
+  assign variant = variant | default: 'square'
   assign grid_id = 'atelier-dots-' | append: identifier | append: '-' | append: section.id
+  assign dot_count = 4
+  if variant == 'pair'
+    assign dot_count = 2
+  endif
 -%}
 
 <span
-  class="atelier-dot-grid"
+  class="atelier-dot-grid atelier-dot-grid--{{ variant }}"
   id="{{ grid_id }}"
   {% if label != blank %}
     role="img"
@@ -23,7 +29,7 @@
     aria-hidden="true"
   {% endif %}
 >
-  {%- for i in (1..6) -%}
+  {%- for i in (1..dot_count) -%}
     <span class="atelier-dot-grid__dot" style="--dot-index: {{ i }}"></span>
   {%- endfor -%}
 </span>

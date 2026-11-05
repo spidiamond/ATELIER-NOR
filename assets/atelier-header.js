@@ -63,6 +63,111 @@ if (document.readyState === 'loading') {
 
 document.addEventListener('shopify:section:load', initAtelierHeader);
 
+const dotShift = (x, y) => `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+
+const squareDotFrames = [
+  [
+    { transform: dotShift(-4, -4), opacity: 1, offset: 0 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.42 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.58 },
+    { transform: dotShift(-4, 0), opacity: 1, offset: 1 },
+  ],
+  [
+    { transform: dotShift(4, -4), opacity: 1, offset: 0 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.42 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.58 },
+    { transform: dotShift(4, 0), opacity: 1, offset: 1 },
+  ],
+  [
+    { transform: dotShift(-4, 4), opacity: 1, offset: 0 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.42 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.58 },
+    { transform: dotShift(0, 0), opacity: 0, offset: 1 },
+  ],
+  [
+    { transform: dotShift(4, 4), opacity: 1, offset: 0 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.42 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.58 },
+    { transform: dotShift(0, 0), opacity: 0, offset: 1 },
+  ],
+];
+
+const pairDotFrames = [
+  [
+    { transform: dotShift(0, -4), opacity: 1, offset: 0 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.42 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.58 },
+    { transform: dotShift(-4, 0), opacity: 1, offset: 1 },
+  ],
+  [
+    { transform: dotShift(0, 4), opacity: 1, offset: 0 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.42 },
+    { transform: dotShift(0, 0), opacity: 1, offset: 0.58 },
+    { transform: dotShift(4, 0), opacity: 1, offset: 1 },
+  ],
+];
+
+const dotMotions = new WeakMap();
+
+const playDotMark = (grid, forward) => {
+  const frames = grid.classList.contains('atelier-dot-grid--pair') ? pairDotFrames : squareDotFrames;
+  const dots = [...grid.querySelectorAll('.atelier-dot-grid__dot')];
+
+  dots.forEach((dot, index) => {
+    let motion = dotMotions.get(dot);
+    if (!motion) {
+      motion = dot.animate(frames[index] || frames[0], {
+        duration: 620,
+        easing: 'linear',
+        fill: 'both',
+      });
+      motion.pause();
+      motion.currentTime = 0;
+      dotMotions.set(dot, motion);
+    }
+
+    const end = Number(motion.effect?.getTiming().duration) || 620;
+    const time = motion.currentTime ?? 0;
+    if (forward) {
+      if (time >= end) return;
+      motion.playbackRate = 1;
+      motion.play();
+      return;
+    }
+    if (time <= 0) return;
+    motion.playbackRate = -1;
+    motion.play();
+  });
+};
+
+const bindDotMarks = () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  document.querySelectorAll('.atelier-dot-grid').forEach((grid) => {
+    if (!(grid instanceof HTMLElement) || grid.dataset.dotBound === 'true') return;
+    grid.dataset.dotBound = 'true';
+    const host = grid.closest('a, button');
+    if (!(host instanceof HTMLElement)) return;
+
+    host.addEventListener('pointerenter', () => playDotMark(grid, true));
+    host.addEventListener('pointerleave', () => playDotMark(grid, false));
+    host.addEventListener('focusin', () => playDotMark(grid, true));
+    host.addEventListener('focusout', (event) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && host.contains(next)) return;
+      playDotMark(grid, false);
+    });
+  });
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindDotMarks, { once: true });
+} else {
+  bindDotMarks();
+}
+
+document.addEventListener('shopify:section:load', bindDotMarks);
+
 const closeOverlayDrawers = (except) => {
   document.querySelectorAll('theme-drawer[data-overlay][open]').forEach((drawer) => {
     if (drawer !== except && typeof drawer.close === 'function') drawer.close();
@@ -79,8 +184,11 @@ document.addEventListener('theme-drawer:open', (event) => {
   if (!(drawer instanceof HTMLElement) || !drawer.hasAttribute('data-overlay')) return;
   closeOverlayDrawers(drawer);
 
-  const regionTrigger = document.querySelector('[aria-controls="atelier-region-drawer"]');
-  if (drawer.id === 'atelier-region-drawer') regionTrigger?.setAttribute('aria-expanded', 'true');
+  if (drawer.id === 'atelier-region-drawer') {
+    document.querySelectorAll('[aria-controls="atelier-region-drawer"]').forEach((trigger) => {
+      trigger.setAttribute('aria-expanded', 'true');
+    });
+  }
 
   const menu = document.querySelector('#Details-menu-drawer-container[open]');
   if (menu) menu.open = false;
@@ -92,7 +200,9 @@ document.addEventListener('theme-drawer:open', (event) => {
 document.addEventListener('theme-drawer:close', (event) => {
   const drawer = event.target;
   if (!(drawer instanceof HTMLElement) || drawer.id !== 'atelier-region-drawer') return;
-  document.querySelector('[aria-controls="atelier-region-drawer"]')?.setAttribute('aria-expanded', 'false');
+  document.querySelectorAll('[aria-controls="atelier-region-drawer"]').forEach((trigger) => {
+    trigger.setAttribute('aria-expanded', 'false');
+  });
 });
 
 document.addEventListener('dialog:open', (event) => {
