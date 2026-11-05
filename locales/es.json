@@ -304,7 +304,14 @@
       "many": "Se agregaron {{ count }} artículos al carrito"
     },
     "quick_order_list": "Lista de pedidos rápidos",
-    "product_disclosures": "Avisos sobre el producto"
+    "product_disclosures": "Avisos sobre el producto",
+    "showcase_tab_best_sellers": "Los más vendidos",
+    "showcase_tab_expert_picks": "Selección de expertos",
+    "showcase_tab_new_arrivals": "Novedades",
+    "showcase_color_options": "Opciones de color",
+    "showcase_quick_view": "Vista rápida {{ product }}",
+    "editorial_hero_next_slide": "Siguiente diapositiva",
+    "editorial_hero_next_preview": "Ir a la siguiente diapositiva"
   },
   "gift_cards": {
     "issued": {
@@ -378,6 +385,21 @@
       "local_pickup": {
         "stock_details": {
           "in_stock": "En existencia"
+        }
+      },
+      "split_delivery": {
+        "delivery_updated_toast": {
+          "shipping_only": "Tu entrega se ha actualizado. {{shipping}}",
+          "removal_only": "Tu entrega se ha actualizado. {{removal}}",
+          "shipping_and_removal": "Tu entrega se ha actualizado. {{shipping}} {{removal}}",
+          "shipping": {
+            "one": "{{count}} artículo se ha movido a envío.",
+            "other": "{{count}} artículos se han movido a envío."
+          },
+          "removal": {
+            "one": "Se ha eliminado {{count}} elemento.",
+            "other": "Se han eliminado {{count}} elementos."
+          }
         }
       }
     }
